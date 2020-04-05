@@ -1,0 +1,32 @@
+name: github pages
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Elm
+        uses: justgook/setup-elm@v1
+
+      - name: Make
+        run: elm make --optimize --output=elm.js src/Main.elm
+
+      - name: Move files
+        run: |
+          mkdir ./public
+          mv ./index.html ./public/
+          mv ./elm.js ./public/
+        # If you have non-minimal setup with some assets and separate html/js files,
+        # provide --output=<output-file> option for `elm make` and remove this step
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
