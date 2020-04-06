@@ -1,9 +1,21 @@
-module Block exposing (mesh, meshDa, meshOka)
+module Block exposing
+    ( lineLoopMesh
+    , mesh
+    , meshDa
+    , meshOka
+    )
 
 import Asset
 import Math.Vector3 as Vec3 exposing (Vec3)
 import Shader
 import WebGL exposing (Mesh)
+
+
+lineLoopMesh : Vec3 -> List Vec3 -> Mesh Shader.Vertex
+lineLoopMesh color list =
+    list
+        |> List.map (\v -> Shader.Vertex (Vec3.scale (1 / 255) color) v)
+        |> WebGL.lineLoop
 
 
 mesh : List ( Shader.Triangle, Vec3 ) -> Mesh Shader.Vertex

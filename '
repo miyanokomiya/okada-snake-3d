@@ -260,24 +260,24 @@ view model =
                          ]
                             ++ Draggable.touchTriggers "my-element" DragMsg
                         )
-                        (fieldEntities
+                        -- (
+                        --   fieldEntities
+                        --     model.camera
+                        --     perspective
+                        --     model.meshMap.default
+                        --     model.field
+                        --     ++ fieldLineEntities
+                        --         model.camera
+                        --         perspective
+                        --         model.meshMap.line
+                        --         model.field
+                        -- )
+                        (fieldLineEntities
                             model.camera
                             perspective
-                            model.meshMap.default
+                            model.meshMap.line
                             model.field
-                            ++ fieldLineEntities
-                                model.camera
-                                perspective
-                                model.meshMap.line
-                                model.field
                         )
-
-                    -- (fieldLineEntities
-                    --     model.camera
-                    --     perspective
-                    --     model.meshMap.line
-                    --     model.field
-                    -- )
                     ]
                 , Html.div
                     [ Html.Attributes.style "display" "flex"
@@ -337,11 +337,9 @@ pointToPosition : Int -> Grid.Point -> Vec3
 pointToPosition lineSize ( x, y, z ) =
     let
         slide =
-            (toFloat lineSize - 1) / 2
+            toFloat (lineSize - 1) / 2
     in
-    vec3 (cellSize * (toFloat x - slide))
-        (cellSize * (toFloat y - slide))
-        (cellSize * (toFloat z - slide))
+    vec3 (cellSize * (toFloat x - slide)) (cellSize * toFloat y - slide) (cellSize * toFloat z - slide)
 
 
 cellToBlock : Int -> Grid.Point -> Cell -> GeoBlock
@@ -371,9 +369,6 @@ fieldLineEntities camera perspective mesh grid =
         lineSize =
             Grid.length grid
 
-        slide =
-            vec3 (cellSize / 2) (cellSize / 2) (cellSize / 2)
-
         repeatArray =
             Array.repeat (lineSize + 1) 0
 
@@ -383,7 +378,7 @@ fieldLineEntities camera perspective mesh grid =
                     (\a _ ->
                         repeatArray
                             |> Array.indexedMap
-                                (\b _ -> map ( a, b ))
+                                (\b _ -> ( a, b ))
                             |> Array.toList
                     )
                 |> Array.toList
@@ -391,7 +386,7 @@ fieldLineEntities camera perspective mesh grid =
 
         xlines =
             planeMap
-                (\( a, b ) ->
+                (\( a, b ) _ ->
                     lineEntity camera
                         perspective
                         mesh
@@ -399,14 +394,14 @@ fieldLineEntities camera perspective mesh grid =
                         { position =
                             Vec3.sub
                                 (pointToPosition lineSize ( 0, b, a ))
-                                slide
+                                (vec3 0 0.5 (cellSize / 2))
                         , rotation = { radian = -pi / 2, axis = vec3 0 0 1 }
                         }
                 )
 
         ylines =
             planeMap
-                (\( a, b ) ->
+                (\( a, b ) _ ->
                     lineEntity camera
                         perspective
                         mesh
@@ -414,14 +409,14 @@ fieldLineEntities camera perspective mesh grid =
                         { position =
                             Vec3.sub
                                 (pointToPosition lineSize ( b, 0, a ))
-                                slide
+                                (vec3 0 0.5 (cellSize / 2))
                         , rotation = { radian = -pi / 2, axis = vec3 0 1 0 }
                         }
                 )
 
         zlines =
             planeMap
-                (\( a, b ) ->
+                (\( a, b ) _ ->
                     lineEntity camera
                         perspective
                         mesh
@@ -429,7 +424,7 @@ fieldLineEntities camera perspective mesh grid =
                         { position =
                             Vec3.sub
                                 (pointToPosition lineSize ( a, b, 0 ))
-                                slide
+                                (vec3 0 0.5 (cellSize / 2))
                         , rotation = { radian = pi / 2, axis = vec3 1 0 0 }
                         }
                 )
