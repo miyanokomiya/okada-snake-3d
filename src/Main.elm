@@ -42,6 +42,12 @@ type Cell
     | Empty
 
 
+type alias PlayerCell =
+    { okada : Okada
+    , point : Grid.Point
+    }
+
+
 field : Grid Cell
 field =
     Grid.initialize 4
@@ -55,6 +61,12 @@ field =
             else
                 Empty
         )
+
+
+type alias Player =
+    { head : PlayerCell
+    , body : List PlayerCell
+    }
 
 
 type alias ColorPair =
@@ -91,6 +103,7 @@ type alias Model =
     { time : Float
     , size : ( Int, Int )
     , field : Grid Cell
+    , player : Player
     , camera : Shader.OrbitCamela
     , downTime : Float
     , drag : Draggable.State String
@@ -147,6 +160,7 @@ initModel level =
     in
     { time = 0
     , field = f
+    , player = { head = { okada = Oka, point = ( 0, 0, 0 ) }, body = [] }
     , camera = ( cameraRadius level, pi / 8, pi / 16 )
     , size = ( 400, 600 )
     , downTime = 0
