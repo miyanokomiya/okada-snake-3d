@@ -6,6 +6,7 @@ module Grid exposing
     , get
     , initialize
     , length
+    , map
     , repeat
     , toList
     )
@@ -95,3 +96,20 @@ initialize size gen =
                         )
                 )
         )
+
+
+map : (( a, ( Int, Int, Int ) ) -> a) -> Grid a -> Grid a
+map exec grid =
+    grid
+        |> Array.indexedMap
+            (\z plane ->
+                plane
+                    |> Array.indexedMap
+                        (\y line ->
+                            line
+                                |> Array.indexedMap
+                                    (\x cell ->
+                                        exec ( cell, ( x, y, z ) )
+                                    )
+                        )
+            )

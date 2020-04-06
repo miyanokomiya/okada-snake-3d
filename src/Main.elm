@@ -5,7 +5,6 @@ import Array
 import Block
 import Browser
 import Browser.Events exposing (onAnimationFrameDelta)
-import Dict exposing (Dict)
 import Draggable
 import Grid exposing (Grid)
 import Html exposing (Html)
@@ -38,7 +37,7 @@ type alias GeoBlock =
 
 
 type Cell
-    = Food Okada
+    = Food Okada Shader.Rotation Shader.Rotation
     | Empty
 
 
@@ -53,10 +52,10 @@ field =
     Grid.initialize 4
         (\( x, y, z ) ->
             if modBy 5 (x + y + z) == 0 then
-                Food Oka
+                Food Oka { radian = 0, axis = vec3 0 1 0 } { radian = 0, axis = vec3 0 1 0 }
 
             else if modBy 5 (x + y + z) == 2 then
-                Food Da
+                Food Da { radian = 0, axis = vec3 0 1 0 } { radian = 0, axis = vec3 0 1 0 }
 
             else
                 Empty
@@ -76,6 +75,16 @@ type alias ColorPair =
 defaultColor : ColorPair
 defaultColor =
     ( vec3 60 179 113, vec3 47 79 79 )
+
+
+playerHeadColor : ColorPair
+playerHeadColor =
+    ( vec3 236 75 40, vec3 150 49 28 )
+
+
+playerBodyColor : ColorPair
+playerBodyColor =
+    ( vec3 230 184 85, vec3 186 147 64 )
 
 
 animateGeoBlock : Float -> GeoBlock -> GeoBlock
@@ -109,6 +118,8 @@ type alias Model =
     , drag : Draggable.State String
     , meshMap :
         { default : MeshSet
+        , playerHead : MeshSet
+        , playerBody : MeshSet
         , line : Mesh Shader.Vertex
         }
     }
@@ -160,13 +171,18 @@ initModel level =
     in
     { time = 0
     , field = f
-    , player = { head = { okada = Oka, point = ( 0, 0, 0 ) }, body = [] }
+    , player =
+        { head = { okada = Oka, point = ( 1, 0, 0 ) }
+        , body = [ { okada = Da, point = ( 0, 0, 0 ) } ]
+        }
     , camera = ( cameraRadius level, pi / 8, pi / 16 )
     , size = ( 400, 600 )
     , downTime = 0
     , drag = Draggable.init
     , meshMap =
         { default = { oka = okadaMesh defaultColor Oka, da = okadaMesh defaultColor Da }
+        , playerHead = { oka = okadaMesh playerHeadColor Oka, da = okadaMesh playerHeadColor Da }
+        , playerBody = { oka = okadaMesh playerBodyColor Oka, da = okadaMesh playerBodyColor Da }
         , line = Block.lineLoopMesh (vec3 180 180 180) [ vec3 0 0 0, vec3 0 1 0 ]
         }
     }
@@ -210,6 +226,17 @@ update msg model =
             in
             ( { model
                 | time = time
+                , field =
+                    model.field
+                        |> Grid.map
+                            (\( cell, _ ) ->
+                                case cell of
+                                    Food okada r t ->
+                                        Food okada r { radian = t.radian + (dt / 1000), axis = t.axis }
+
+                                    Empty ->
+                                        Empty
+                            )
               }
             , Cmd.none
             )
@@ -286,14 +313,13 @@ view model =
                                 perspective
                                 model.meshMap.line
                                 model.field
+                            ++ playerEntities
+                                model.camera
+                                perspective
+                                ( model.meshMap.playerHead, model.meshMap.playerBody )
+                                (Array.length model.field)
+                                model.player
                         )
-
-                    -- (fieldLineEntities
-                    --     model.camera
-                    --     perspective
-                    --     model.meshMap.line
-                    --     model.field
-                    -- )
                     ]
                 , Html.div
                     [ Html.Attributes.style "display" "flex"
@@ -368,17 +394,14 @@ cellToBlock lineSize point cell =
 
         position =
             pointToPosition lineSize point
-
-        rotation =
-            { radian = 0, axis = vec3 0 1 0 }
     in
     case cell of
-        Food okada ->
+        Food okada rotation turning ->
             Just
                 { id = String.fromInt x ++ "," ++ String.fromInt y ++ "," ++ String.fromInt z
                 , okada = okada
                 , geo = { position = position, rotation = rotation }
-                , turning = rotation
+                , turning = turning
                 , rotateAnimation = Motion.staticRotateAnimation rotation.radian
                 , positionAnimation = Motion.staticPositionAnimation position
                 }
@@ -473,24 +496,60 @@ fieldEntities camera perspective set grid =
         |> Maybe.Extra.values
         |> List.map
             (\block ->
-                entity camera perspective set block
+                entity camera perspective set 0.5 block
             )
 
 
-entity : Shader.OrbitCamela -> Mat4 -> MeshSet -> GeoBlock -> WebGL.Entity
-entity camera perspective set block =
+playerCellToBlock : Int -> PlayerCell -> GeoBlock
+playerCellToBlock fieldSize pcell =
+    let
+        point =
+            pcell.point
+
+        ( x, y, z ) =
+            point
+
+        position =
+            pointToPosition fieldSize point
+
+        rotation =
+            { radian = 0, axis = vec3 0 1 0 }
+    in
+    { id = String.fromInt x ++ "," ++ String.fromInt y ++ "," ++ String.fromInt z
+    , okada = pcell.okada
+    , geo = { position = position, rotation = rotation }
+    , turning = rotation
+    , rotateAnimation = Motion.staticRotateAnimation rotation.radian
+    , positionAnimation = Motion.staticPositionAnimation position
+    }
+
+
+playerEntities : Shader.OrbitCamela -> Mat4 -> ( MeshSet, MeshSet ) -> Int -> Player -> List WebGL.Entity
+playerEntities camera perspective ( headSet, bodySet ) fieldSize player =
+    entity camera perspective headSet 1 (playerCellToBlock fieldSize player.head)
+        :: (player.body
+                |> List.map
+                    (\pcell -> entity camera perspective bodySet 1 (playerCellToBlock fieldSize pcell))
+           )
+
+
+entity : Shader.OrbitCamela -> Mat4 -> MeshSet -> Float -> GeoBlock -> WebGL.Entity
+entity camera perspective set scale block =
     let
         p =
             block.geo.position
 
         r =
             block.geo.rotation
+
+        transfrom =
+            Mat4.mul (Mat4.mul (Shader.rotationToMat r) (Shader.rotationToMat block.turning)) (Mat4.makeScale3 scale scale scale)
     in
     WebGL.entity
         Shader.vertexShader
         Shader.fragmentShader
         (toMesh set block)
-        (Shader.uniforms camera perspective p (Mat4.mul (Shader.rotationToMat r) (Shader.rotationToMat block.turning)))
+        (Shader.uniforms camera perspective p transfrom)
 
 
 lineEntity : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex -> Float -> Shader.Geo -> WebGL.Entity
