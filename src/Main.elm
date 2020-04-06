@@ -13,6 +13,7 @@ import Html.Attributes exposing (height, style, width)
 import Html.Events
 import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
+import Maybe.Extra
 import Motion
 import Random
 import Random.Extra
@@ -36,22 +37,23 @@ type alias GeoBlock =
     }
 
 
-type alias Cell =
-    { okada : Okada
-    }
+type Cell
+    = Food Okada
+    | Empty
 
 
 field : Grid Cell
 field =
     Grid.initialize 4
         (\( x, y, z ) ->
-            { okada =
-                if modBy 2 (x + y + z) == 0 then
-                    Oka
+            if modBy 5 (x + y + z) == 0 then
+                Food Oka
 
-                else
-                    Da
-            }
+            else if modBy 5 (x + y + z) == 2 then
+                Food Da
+
+            else
+                Empty
         )
 
 
@@ -151,7 +153,7 @@ initModel level =
     , drag = Draggable.init
     , meshMap =
         { default = { oka = okadaMesh defaultColor Oka, da = okadaMesh defaultColor Da }
-        , line = Block.lineLoopMesh (vec3 0 0 0) [ vec3 0 0 0, vec3 0 1 0 ]
+        , line = Block.lineLoopMesh (vec3 180 180 180) [ vec3 0 0 0, vec3 0 1 0 ]
         }
     }
 
@@ -344,7 +346,7 @@ pointToPosition lineSize ( x, y, z ) =
         (cellSize * (toFloat z - slide))
 
 
-cellToBlock : Int -> Grid.Point -> Cell -> GeoBlock
+cellToBlock : Int -> Grid.Point -> Cell -> Maybe GeoBlock
 cellToBlock lineSize point cell =
     let
         ( x, y, z ) =
@@ -356,13 +358,19 @@ cellToBlock lineSize point cell =
         rotation =
             { radian = 0, axis = vec3 0 1 0 }
     in
-    { id = String.fromInt x ++ "," ++ String.fromInt y ++ "," ++ String.fromInt z
-    , okada = cell.okada
-    , geo = { position = position, rotation = rotation }
-    , turning = rotation
-    , rotateAnimation = Motion.staticRotateAnimation rotation.radian
-    , positionAnimation = Motion.staticPositionAnimation position
-    }
+    case cell of
+        Food okada ->
+            Just
+                { id = String.fromInt x ++ "," ++ String.fromInt y ++ "," ++ String.fromInt z
+                , okada = okada
+                , geo = { position = position, rotation = rotation }
+                , turning = rotation
+                , rotateAnimation = Motion.staticRotateAnimation rotation.radian
+                , positionAnimation = Motion.staticPositionAnimation position
+                }
+
+        _ ->
+            Nothing
 
 
 fieldLineEntities : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex -> Grid Cell -> List WebGL.Entity
@@ -446,7 +454,12 @@ fieldEntities camera perspective set grid =
     Grid.toList grid
         |> List.map
             (\( point, cell ) ->
-                entity camera perspective set (cellToBlock lineSize point cell)
+                cellToBlock lineSize point cell
+            )
+        |> Maybe.Extra.values
+        |> List.map
+            (\block ->
+                entity camera perspective set block
             )
 
 
