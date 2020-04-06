@@ -609,7 +609,7 @@ playerEntities camera perspective ( headSet, bodySet ) fieldSize player =
     entity camera perspective headSet 1 (playerCellToBlock fieldSize player.head)
         :: (player.body
                 |> List.map
-                    (\pcell -> entity camera perspective bodySet 1 (playerCellToBlock fieldSize pcell))
+                    (\pcell -> entity camera perspective bodySet 0.8 (playerCellToBlock fieldSize pcell))
            )
 
 
