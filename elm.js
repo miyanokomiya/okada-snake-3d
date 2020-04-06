@@ -784,11 +784,11 @@ function _Debug_crash_UNUSED(identifier, fact1, fact2, fact3, fact4)
 
 function _Debug_regionToString(region)
 {
-	if (region.aG.aX === region.aP.aX)
+	if (region.aH.aZ === region.aQ.aZ)
 	{
-		return 'on line ' + region.aG.aX;
+		return 'on line ' + region.aH.aZ;
 	}
-	return 'on lines ' + region.aG.aX + ' through ' + region.aP.aX;
+	return 'on lines ' + region.aH.aZ + ' through ' + region.aQ.aZ;
 }
 
 
@@ -1857,9 +1857,9 @@ var _Platform_worker = F4(function(impl, flagDecoder, debugMetadata, args)
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.bI,
-		impl.co,
-		impl.ci,
+		impl.bL,
+		impl.cr,
+		impl.cl,
 		function() { return function() {} }
 	);
 });
@@ -2705,8 +2705,8 @@ var _VirtualDom_mapEventRecord = F2(function(func, record)
 {
 	return {
 		x: func(record.x),
-		aH: record.aH,
-		aC: record.aC
+		aI: record.aI,
+		aD: record.aD
 	}
 });
 
@@ -2975,10 +2975,10 @@ function _VirtualDom_makeCallback(eventNode, initialHandler)
 
 		var value = result.a;
 		var message = !tag ? value : tag < 3 ? value.a : value.x;
-		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.aH;
+		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.aI;
 		var currentEventNode = (
 			stopPropagation && event.stopPropagation(),
-			(tag == 2 ? value.b : tag == 3 && value.aC) && event.preventDefault(),
+			(tag == 2 ? value.b : tag == 3 && value.aD) && event.preventDefault(),
 			eventNode
 		);
 		var tagger;
@@ -3928,11 +3928,11 @@ var _Browser_element = _Debugger_element || F4(function(impl, flagDecoder, debug
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.bI,
-		impl.co,
-		impl.ci,
+		impl.bL,
+		impl.cr,
+		impl.cl,
 		function(sendToApp, initialModel) {
-			var view = impl.cp;
+			var view = impl.cs;
 			/**/
 			var domNode = args['node'];
 			//*/
@@ -3964,12 +3964,12 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.bI,
-		impl.co,
-		impl.ci,
+		impl.bL,
+		impl.cr,
+		impl.cl,
 		function(sendToApp, initialModel) {
-			var divertHrefToApp = impl.aF && impl.aF(sendToApp)
-			var view = impl.cp;
+			var divertHrefToApp = impl.aG && impl.aG(sendToApp)
+			var view = impl.cs;
 			var title = _VirtualDom_doc.title;
 			var bodyNode = _VirtualDom_doc.body;
 			var currNode = _VirtualDom_virtualize(bodyNode);
@@ -3977,12 +3977,12 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 			{
 				_VirtualDom_divertHrefToApp = divertHrefToApp;
 				var doc = view(model);
-				var nextNode = _VirtualDom_node('body')(_List_Nil)(doc.bp);
+				var nextNode = _VirtualDom_node('body')(_List_Nil)(doc.au);
 				var patches = _VirtualDom_diff(currNode, nextNode);
 				bodyNode = _VirtualDom_applyPatches(bodyNode, currNode, patches, sendToApp);
 				currNode = nextNode;
 				_VirtualDom_divertHrefToApp = 0;
-				(title !== doc.cm) && (_VirtualDom_doc.title = title = doc.cm);
+				(title !== doc.cp) && (_VirtualDom_doc.title = title = doc.cp);
 			});
 		}
 	);
@@ -4038,12 +4038,12 @@ function _Browser_makeAnimator(model, draw)
 
 function _Browser_application(impl)
 {
-	var onUrlChange = impl.b7;
-	var onUrlRequest = impl.b8;
+	var onUrlChange = impl.ca;
+	var onUrlRequest = impl.cb;
 	var key = function() { key.a(onUrlChange(_Browser_getUrl())); };
 
 	return _Browser_document({
-		aF: function(sendToApp)
+		aG: function(sendToApp)
 		{
 			key.a = sendToApp;
 			_Browser_window.addEventListener('popstate', key);
@@ -4059,9 +4059,9 @@ function _Browser_application(impl)
 					var next = $elm$url$Url$fromString(href).a;
 					sendToApp(onUrlRequest(
 						(next
-							&& curr.ba === next.ba
-							&& curr.aT === next.aT
-							&& curr.a7.a === next.a7.a
+							&& curr.be === next.be
+							&& curr.aV === next.aV
+							&& curr.bb.a === next.bb.a
 						)
 							? $elm$browser$Browser$Internal(next)
 							: $elm$browser$Browser$External(href)
@@ -4069,13 +4069,13 @@ function _Browser_application(impl)
 				}
 			});
 		},
-		bI: function(flags)
+		bL: function(flags)
 		{
-			return A3(impl.bI, flags, _Browser_getUrl(), key);
+			return A3(impl.bL, flags, _Browser_getUrl(), key);
 		},
-		cp: impl.cp,
-		co: impl.co,
-		ci: impl.ci
+		cs: impl.cs,
+		cr: impl.cr,
+		cl: impl.cl
 	});
 }
 
@@ -4141,17 +4141,17 @@ var _Browser_decodeEvent = F2(function(decoder, event)
 function _Browser_visibilityInfo()
 {
 	return (typeof _VirtualDom_doc.hidden !== 'undefined')
-		? { bF: 'hidden', br: 'visibilitychange' }
+		? { bI: 'hidden', bu: 'visibilitychange' }
 		:
 	(typeof _VirtualDom_doc.mozHidden !== 'undefined')
-		? { bF: 'mozHidden', br: 'mozvisibilitychange' }
+		? { bI: 'mozHidden', bu: 'mozvisibilitychange' }
 		:
 	(typeof _VirtualDom_doc.msHidden !== 'undefined')
-		? { bF: 'msHidden', br: 'msvisibilitychange' }
+		? { bI: 'msHidden', bu: 'msvisibilitychange' }
 		:
 	(typeof _VirtualDom_doc.webkitHidden !== 'undefined')
-		? { bF: 'webkitHidden', br: 'webkitvisibilitychange' }
-		: { bF: 'hidden', br: 'visibilitychange' };
+		? { bI: 'webkitHidden', bu: 'webkitvisibilitychange' }
+		: { bI: 'hidden', bu: 'visibilitychange' };
 }
 
 
@@ -4232,12 +4232,12 @@ var _Browser_call = F2(function(functionName, id)
 function _Browser_getViewport()
 {
 	return {
-		be: _Browser_getScene(),
-		bj: {
-			aq: _Browser_window.pageXOffset,
-			ar: _Browser_window.pageYOffset,
-			bl: _Browser_doc.documentElement.clientWidth,
-			aS: _Browser_doc.documentElement.clientHeight
+		bi: _Browser_getScene(),
+		bn: {
+			ar: _Browser_window.pageXOffset,
+			as: _Browser_window.pageYOffset,
+			bp: _Browser_doc.documentElement.clientWidth,
+			aU: _Browser_doc.documentElement.clientHeight
 		}
 	};
 }
@@ -4247,8 +4247,8 @@ function _Browser_getScene()
 	var body = _Browser_doc.body;
 	var elem = _Browser_doc.documentElement;
 	return {
-		bl: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
-		aS: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
+		bp: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
+		aU: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
 	};
 }
 
@@ -4271,15 +4271,15 @@ function _Browser_getViewportOf(id)
 	return _Browser_withNode(id, function(node)
 	{
 		return {
-			be: {
-				bl: node.scrollWidth,
-				aS: node.scrollHeight
+			bi: {
+				bp: node.scrollWidth,
+				aU: node.scrollHeight
 			},
-			bj: {
-				aq: node.scrollLeft,
-				ar: node.scrollTop,
-				bl: node.clientWidth,
-				aS: node.clientHeight
+			bn: {
+				ar: node.scrollLeft,
+				as: node.scrollTop,
+				bp: node.clientWidth,
+				aU: node.clientHeight
 			}
 		};
 	});
@@ -4309,18 +4309,18 @@ function _Browser_getElement(id)
 		var x = _Browser_window.pageXOffset;
 		var y = _Browser_window.pageYOffset;
 		return {
-			be: _Browser_getScene(),
-			bj: {
-				aq: x,
-				ar: y,
-				bl: _Browser_doc.documentElement.clientWidth,
-				aS: _Browser_doc.documentElement.clientHeight
+			bi: _Browser_getScene(),
+			bn: {
+				ar: x,
+				as: y,
+				bp: _Browser_doc.documentElement.clientWidth,
+				aU: _Browser_doc.documentElement.clientHeight
 			},
-			bC: {
-				aq: x + rect.left,
-				ar: y + rect.top,
-				bl: rect.width,
-				aS: rect.height
+			bF: {
+				ar: x + rect.left,
+				as: y + rect.top,
+				bp: rect.width,
+				aU: rect.height
 			}
 		};
 	});
@@ -4408,11 +4408,11 @@ var _MJS_v2setY = F2(function(y, a) {
 });
 
 var _MJS_v2toRecord = function(a) {
-    return { aq: a[0], ar: a[1] };
+    return { ar: a[0], as: a[1] };
 };
 
 var _MJS_v2fromRecord = function(r) {
-    return new Float64Array([r.aq, r.ar]);
+    return new Float64Array([r.ar, r.as]);
 };
 
 var _MJS_v2add = F2(function(a, b) {
@@ -4521,11 +4521,11 @@ var _MJS_v3setZ = F2(function(z, a) {
 });
 
 var _MJS_v3toRecord = function(a) {
-    return { aq: a[0], ar: a[1], as: a[2] };
+    return { ar: a[0], as: a[1], at: a[2] };
 };
 
 var _MJS_v3fromRecord = function(r) {
-    return new Float64Array([r.aq, r.ar, r.as]);
+    return new Float64Array([r.ar, r.as, r.at]);
 };
 
 var _MJS_v3add = F2(function(a, b) {
@@ -4681,11 +4681,11 @@ var _MJS_v4setW = F2(function(w, a) {
 });
 
 var _MJS_v4toRecord = function(a) {
-    return { aq: a[0], ar: a[1], as: a[2], bk: a[3] };
+    return { ar: a[0], as: a[1], at: a[2], bo: a[3] };
 };
 
 var _MJS_v4fromRecord = function(r) {
-    return new Float64Array([r.aq, r.ar, r.as, r.bk]);
+    return new Float64Array([r.ar, r.as, r.at, r.bo]);
 };
 
 var _MJS_v4add = F2(function(a, b) {
@@ -4791,31 +4791,31 @@ var _MJS_m4x4identity = new Float64Array([
 
 var _MJS_m4x4fromRecord = function(r) {
     var m = new Float64Array(16);
-    m[0] = r.bL;
-    m[1] = r.bP;
-    m[2] = r.bT;
-    m[3] = r.bX;
-    m[4] = r.bM;
-    m[5] = r.bQ;
-    m[6] = r.bU;
-    m[7] = r.bY;
-    m[8] = r.bN;
-    m[9] = r.bR;
-    m[10] = r.bV;
-    m[11] = r.bZ;
-    m[12] = r.bO;
-    m[13] = r.bS;
-    m[14] = r.bW;
-    m[15] = r.b_;
+    m[0] = r.bO;
+    m[1] = r.bS;
+    m[2] = r.bW;
+    m[3] = r.b_;
+    m[4] = r.bP;
+    m[5] = r.bT;
+    m[6] = r.bX;
+    m[7] = r.b$;
+    m[8] = r.bQ;
+    m[9] = r.bU;
+    m[10] = r.bY;
+    m[11] = r.b0;
+    m[12] = r.bR;
+    m[13] = r.bV;
+    m[14] = r.bZ;
+    m[15] = r.b1;
     return m;
 };
 
 var _MJS_m4x4toRecord = function(m) {
     return {
-        bL: m[0], bP: m[1], bT: m[2], bX: m[3],
-        bM: m[4], bQ: m[5], bU: m[6], bY: m[7],
-        bN: m[8], bR: m[9], bV: m[10], bZ: m[11],
-        bO: m[12], bS: m[13], bW: m[14], b_: m[15]
+        bO: m[0], bS: m[1], bW: m[2], b_: m[3],
+        bP: m[4], bT: m[5], bX: m[6], b$: m[7],
+        bQ: m[8], bU: m[9], bY: m[10], b0: m[11],
+        bR: m[12], bV: m[13], bZ: m[14], b1: m[15]
     };
 };
 
@@ -5584,7 +5584,7 @@ function _WebGL_doBindAttribute(gl, attribute, mesh, attributes) {
   // The length of the number of vertices that
   // complete one 'thing' based on the drawing mode.
   // ie, 2 for Lines, 3 for Triangles, etc.
-  var elemSize = mesh.a.aO;
+  var elemSize = mesh.a.aP;
 
   var idxKeys = [];
   for (var i = 0; i < elemSize; i++) {
@@ -5647,10 +5647,10 @@ function _WebGL_doBindAttribute(gl, attribute, mesh, attributes) {
  *  @return {Object} buffer.buffers - will be used to buffer attributes
  */
 function _WebGL_doBindSetup(gl, mesh) {
-  if (mesh.a.aV > 0) {
+  if (mesh.a.aX > 0) {
     _WebGL_log('Created index buffer');
     var indexBuffer = gl.createBuffer();
-    var indices = _WebGL_makeIndexedBuffer(mesh.c, mesh.a.aV);
+    var indices = _WebGL_makeIndexedBuffer(mesh.c, mesh.a.aX);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
     return {
@@ -5660,7 +5660,7 @@ function _WebGL_doBindSetup(gl, mesh) {
     };
   } else {
     return {
-      numIndices: mesh.a.aO * _WebGL_listLength(mesh.b),
+      numIndices: mesh.a.aP * _WebGL_listLength(mesh.b),
       indexBuffer: null,
       buffers: {}
     };
@@ -5806,9 +5806,9 @@ var _WebGL_drawGL = F2(function (model, domNode) {
 
     if (buffer.indexBuffer) {
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer.indexBuffer);
-      gl.drawElements(entity.d.a.aZ, buffer.numIndices, gl.UNSIGNED_SHORT, 0);
+      gl.drawElements(entity.d.a.a$, buffer.numIndices, gl.UNSIGNED_SHORT, 0);
     } else {
-      gl.drawArrays(entity.d.a.aZ, 0, buffer.numIndices);
+      gl.drawArrays(entity.d.a.a$, 0, buffer.numIndices);
     }
 
     _WebGL_listEach($elm_explorations$webgl$WebGL$Internal$disableSetting(model.f), entity.a);
@@ -5855,7 +5855,7 @@ function _WebGL_createUniformSetters(gl, model, program, uniformsMap) {
           var tex = model.f.textures.get(texture);
           if (!tex) {
             _WebGL_log('Created texture');
-            tex = texture.bw(gl);
+            tex = texture.bz(gl);
             model.f.textures.set(texture, tex);
           }
           gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -6552,7 +6552,7 @@ var $elm$url$Url$Http = 0;
 var $elm$url$Url$Https = 1;
 var $elm$url$Url$Url = F6(
 	function (protocol, host, port_, path, query, fragment) {
-		return {aR: fragment, aT: host, a4: path, a7: port_, ba: protocol, bb: query};
+		return {aS: fragment, aV: host, a6: path, bb: port_, be: protocol, bf: query};
 	});
 var $elm$core$String$contains = _String_contains;
 var $elm$core$String$length = _String_length;
@@ -6879,14 +6879,14 @@ var $zaboco$elm_draggable$Draggable$State = $elm$core$Basics$identity;
 var $zaboco$elm_draggable$Draggable$init = $zaboco$elm_draggable$Internal$NotDragging;
 var $author$project$Shader$Vertex = F2(
 	function (color, position) {
-		return {bu: color, J: position};
+		return {bx: color, J: position};
 	});
 var $elm_explorations$webgl$WebGL$Mesh1 = F2(
 	function (a, b) {
 		return {$: 0, a: a, b: b};
 	});
 var $elm_explorations$webgl$WebGL$lineLoop = $elm_explorations$webgl$WebGL$Mesh1(
-	{aO: 1, aV: 0, aZ: 2});
+	{aP: 1, aX: 0, a$: 2});
 var $elm_explorations$linear_algebra$Math$Vector3$scale = _MJS_v3scale;
 var $author$project$Block$lineLoopMesh = F2(
 	function (color, list) {
@@ -8007,7 +8007,7 @@ var $elm_explorations$webgl$WebGL$Mesh3 = F2(
 		return {$: 2, a: a, b: b};
 	});
 var $elm_explorations$webgl$WebGL$triangles = $elm_explorations$webgl$WebGL$Mesh3(
-	{aO: 3, aV: 0, aZ: 4});
+	{aP: 3, aX: 0, a$: 4});
 var $author$project$Block$mesh = function (list) {
 	return $elm_explorations$webgl$WebGL$triangles(
 		$elm$core$List$concat(
@@ -10622,15 +10622,15 @@ var $author$project$Main$initModel = function (level) {
 			$author$project$Main$cameraRadius(level),
 			$elm$core$Basics$pi / 8,
 			$elm$core$Basics$pi / 16),
-		aa: 0,
-		au: $zaboco$elm_draggable$Draggable$init,
-		ac: f,
-		ah: {
-			aN: {
-				at: A2($author$project$Main$okadaMesh, $author$project$Main$defaultColor, 1),
-				ay: A2($author$project$Main$okadaMesh, $author$project$Main$defaultColor, 0)
+		ab: 0,
+		aw: $zaboco$elm_draggable$Draggable$init,
+		ad: f,
+		ai: {
+			aO: {
+				av: A2($author$project$Main$okadaMesh, $author$project$Main$defaultColor, 1),
+				aA: A2($author$project$Main$okadaMesh, $author$project$Main$defaultColor, 0)
 			},
-			aX: A2(
+			aZ: A2(
 				$author$project$Block$lineLoopMesh,
 				A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 180, 180, 180),
 				_List_fromArray(
@@ -10639,8 +10639,15 @@ var $author$project$Main$initModel = function (level) {
 						A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0)
 					]))
 		},
-		ao: _Utils_Tuple2(400, 600),
-		S: 0
+		a9: {
+			au: _List_Nil,
+			aT: {
+				Q: 0,
+				ba: _Utils_Tuple3(0, 0, 0)
+			}
+		},
+		ap: _Utils_Tuple2(400, 600),
+		T: 0
 	};
 };
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
@@ -10661,7 +10668,7 @@ var $elm$browser$Browser$AnimationManager$Delta = function (a) {
 };
 var $elm$browser$Browser$AnimationManager$State = F3(
 	function (subs, request, oldTime) {
-		return {aA: oldTime, bd: request, bg: subs};
+		return {aB: oldTime, bh: request, bk: subs};
 	});
 var $elm$browser$Browser$AnimationManager$init = $elm$core$Task$succeed(
 	A3($elm$browser$Browser$AnimationManager$State, _List_Nil, $elm$core$Maybe$Nothing, 0));
@@ -10672,8 +10679,8 @@ var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
 var $elm$core$Process$spawn = _Scheduler_spawn;
 var $elm$browser$Browser$AnimationManager$onEffects = F3(
 	function (router, subs, _v0) {
-		var request = _v0.bd;
-		var oldTime = _v0.aA;
+		var request = _v0.bh;
+		var oldTime = _v0.aB;
 		var _v1 = _Utils_Tuple2(request, subs);
 		if (_v1.a.$ === 1) {
 			if (!_v1.b.b) {
@@ -10721,8 +10728,8 @@ var $elm$time$Time$Posix = $elm$core$Basics$identity;
 var $elm$time$Time$millisToPosix = $elm$core$Basics$identity;
 var $elm$browser$Browser$AnimationManager$onSelfMsg = F3(
 	function (router, newTime, _v0) {
-		var subs = _v0.bg;
-		var oldTime = _v0.aA;
+		var subs = _v0.bk;
+		var oldTime = _v0.aB;
 		var send = function (sub) {
 			if (!sub.$) {
 				var tagger = sub.a;
@@ -10802,7 +10809,7 @@ var $elm$browser$Browser$Events$MySub = F3(
 	});
 var $elm$browser$Browser$Events$State = F2(
 	function (subs, pids) {
-		return {a6: pids, bg: subs};
+		return {a8: pids, bk: subs};
 	});
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: -2};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
@@ -11033,7 +11040,7 @@ var $elm$core$Dict$merge = F6(
 	});
 var $elm$browser$Browser$Events$Event = F2(
 	function (key, event) {
-		return {aQ: event, aW: key};
+		return {aR: event, aY: key};
 	});
 var $elm$browser$Browser$Events$spawn = F3(
 	function (router, key, _v0) {
@@ -11107,7 +11114,7 @@ var $elm$browser$Browser$Events$onEffects = F3(
 			stepLeft,
 			stepBoth,
 			stepRight,
-			state.a6,
+			state.a8,
 			$elm$core$Dict$fromList(newSubs),
 			_Utils_Tuple3(_List_Nil, $elm$core$Dict$empty, _List_Nil));
 		var deadPids = _v0.a;
@@ -11153,8 +11160,8 @@ var $elm$core$List$filterMap = F2(
 	});
 var $elm$browser$Browser$Events$onSelfMsg = F3(
 	function (router, _v0, state) {
-		var key = _v0.aW;
-		var event = _v0.aQ;
+		var key = _v0.aY;
+		var event = _v0.aR;
 		var toMessage = function (_v2) {
 			var subKey = _v2.a;
 			var _v3 = _v2.b;
@@ -11163,7 +11170,7 @@ var $elm$browser$Browser$Events$onSelfMsg = F3(
 			var decoder = _v3.c;
 			return _Utils_eq(subKey, key) ? A2(_Browser_decodeEvent, decoder, event) : $elm$core$Maybe$Nothing;
 		};
-		var messages = A2($elm$core$List$filterMap, toMessage, state.bg);
+		var messages = A2($elm$core$List$filterMap, toMessage, state.bk);
 		return A2(
 			$elm$core$Task$andThen,
 			function (_v1) {
@@ -11197,7 +11204,7 @@ var $elm$browser$Browser$Events$onMouseMove = A2($elm$browser$Browser$Events$on,
 var $elm$browser$Browser$Events$onMouseUp = A2($elm$browser$Browser$Events$on, 0, 'mouseup');
 var $zaboco$elm_draggable$Internal$Position = F2(
 	function (x, y) {
-		return {aq: x, ar: y};
+		return {ar: x, as: y};
 	});
 var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$float = _Json_decodeFloat;
@@ -11240,7 +11247,7 @@ var $author$project$Main$subscriptions = function (model) {
 				function (dt) {
 					return $author$project$Main$Delta(dt);
 				}),
-				A2($zaboco$elm_draggable$Draggable$subscriptions, $author$project$Main$DragMsg, model.au)
+				A2($zaboco$elm_draggable$Draggable$subscriptions, $author$project$Main$DragMsg, model.aw)
 			]));
 };
 var $author$project$Main$OnDragBy = function (a) {
@@ -11248,17 +11255,17 @@ var $author$project$Main$OnDragBy = function (a) {
 };
 var $zaboco$elm_draggable$Draggable$Config = $elm$core$Basics$identity;
 var $zaboco$elm_draggable$Internal$defaultConfig = {
-	b2: function (_v0) {
+	b5: function (_v0) {
 		return $elm$core$Maybe$Nothing;
 	},
-	b3: function (_v1) {
+	b6: function (_v1) {
 		return $elm$core$Maybe$Nothing;
 	},
-	b4: $elm$core$Maybe$Nothing,
-	b5: function (_v2) {
+	b7: $elm$core$Maybe$Nothing,
+	b8: function (_v2) {
 		return $elm$core$Maybe$Nothing;
 	},
-	b6: function (_v3) {
+	b9: function (_v3) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
@@ -11267,7 +11274,7 @@ var $zaboco$elm_draggable$Draggable$basicConfig = function (onDragByListener) {
 	return _Utils_update(
 		defaultConfig,
 		{
-			b3: A2($elm$core$Basics$composeL, $elm$core$Maybe$Just, onDragByListener)
+			b6: A2($elm$core$Basics$composeL, $elm$core$Maybe$Just, onDragByListener)
 		});
 };
 var $author$project$Main$dragConfig = $zaboco$elm_draggable$Draggable$basicConfig($author$project$Main$OnDragBy);
@@ -11321,7 +11328,7 @@ var $zaboco$elm_draggable$Internal$DraggingTentative = F2(
 	});
 var $zaboco$elm_draggable$Internal$distanceTo = F2(
 	function (end, start) {
-		return _Utils_Tuple2(end.aq - start.aq, end.ar - start.ar);
+		return _Utils_Tuple2(end.ar - start.ar, end.as - start.as);
 	});
 var $zaboco$elm_draggable$Internal$updateAndEmit = F3(
 	function (config, msg, drag) {
@@ -11337,7 +11344,7 @@ var $zaboco$elm_draggable$Internal$updateAndEmit = F3(
 						var initialPosition = _v2.b;
 						return _Utils_Tuple2(
 							A2($zaboco$elm_draggable$Internal$DraggingTentative, key, initialPosition),
-							config.b6(key));
+							config.b9(key));
 					} else {
 						break _v0$5;
 					}
@@ -11349,14 +11356,14 @@ var $zaboco$elm_draggable$Internal$updateAndEmit = F3(
 							var oldPosition = _v3.b;
 							return _Utils_Tuple2(
 								$zaboco$elm_draggable$Internal$Dragging(oldPosition),
-								config.b5(key));
+								config.b8(key));
 						case 2:
 							var _v4 = _v0.a;
 							var key = _v4.a;
 							var _v5 = _v0.b;
 							return _Utils_Tuple2(
 								$zaboco$elm_draggable$Internal$NotDragging,
-								config.b2(key));
+								config.b5(key));
 						default:
 							break _v0$5;
 					}
@@ -11367,11 +11374,11 @@ var $zaboco$elm_draggable$Internal$updateAndEmit = F3(
 							var newPosition = _v0.b.a;
 							return _Utils_Tuple2(
 								$zaboco$elm_draggable$Internal$Dragging(newPosition),
-								config.b3(
+								config.b6(
 									A2($zaboco$elm_draggable$Internal$distanceTo, newPosition, oldPosition)));
 						case 2:
 							var _v6 = _v0.b;
-							return _Utils_Tuple2($zaboco$elm_draggable$Internal$NotDragging, config.b4);
+							return _Utils_Tuple2($zaboco$elm_draggable$Internal$NotDragging, config.b7);
 						default:
 							break _v0$5;
 					}
@@ -11393,13 +11400,13 @@ var $zaboco$elm_draggable$Draggable$updateDraggable = F3(
 	});
 var $zaboco$elm_draggable$Draggable$update = F3(
 	function (config, msg, model) {
-		var _v0 = A3($zaboco$elm_draggable$Draggable$updateDraggable, config, msg, model.au);
+		var _v0 = A3($zaboco$elm_draggable$Draggable$updateDraggable, config, msg, model.aw);
 		var dragState = _v0.a;
 		var dragCmd = _v0.b;
 		return _Utils_Tuple2(
 			_Utils_update(
 				model,
-				{au: dragState}),
+				{aw: dragState}),
 			dragCmd);
 	});
 var $author$project$Main$update = F2(
@@ -11414,11 +11421,11 @@ var $author$project$Main$update = F2(
 				return _Utils_Tuple2(next, $elm$core$Platform$Cmd$none);
 			case 1:
 				var dt = msg.a;
-				var time = model.S + dt;
+				var time = model.T + dt;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{S: time}),
+						{T: time}),
 					$elm$core$Platform$Cmd$none);
 			case 2:
 				var _v2 = msg.a;
@@ -11432,7 +11439,7 @@ var $author$project$Main$update = F2(
 								cr,
 								ca - (dx / 30),
 								$author$project$Main$limitRadian(cb - (dy / 30))),
-							aa: model.aa + 1
+							ab: model.ab + 1
 						}),
 					$elm$core$Platform$Cmd$none);
 			default:
@@ -11477,7 +11484,7 @@ var $elm_explorations$linear_algebra$Math$Vector3$getZ = _MJS_v3getZ;
 var $mgold$elm_animation$Animation$A = $elm$core$Basics$identity;
 var $mgold$elm_animation$Animation$AnimRecord = F7(
 	function (start, delay_, dos, ramp, ease_, from_, to_) {
-		return {i: delay_, g: dos, t: ease_, d: from_, r: ramp, aG: start, a: to_};
+		return {i: delay_, g: dos, t: ease_, d: from_, r: ramp, aH: start, a: to_};
 	});
 var $mgold$elm_animation$Animation$Duration = function (a) {
 	return {$: 0, a: a};
@@ -11492,11 +11499,11 @@ var $mgold$elm_animation$Animation$static = function (x) {
 };
 var $author$project$Motion$staticPositionAnimation = function (vec) {
 	return {
-		aq: $mgold$elm_animation$Animation$static(
-			$elm_explorations$linear_algebra$Math$Vector3$getX(vec)),
 		ar: $mgold$elm_animation$Animation$static(
-			$elm_explorations$linear_algebra$Math$Vector3$getY(vec)),
+			$elm_explorations$linear_algebra$Math$Vector3$getX(vec)),
 		as: $mgold$elm_animation$Animation$static(
+			$elm_explorations$linear_algebra$Math$Vector3$getY(vec)),
+		at: $mgold$elm_animation$Animation$static(
 			$elm_explorations$linear_algebra$Math$Vector3$getZ(vec))
 	};
 };
@@ -11519,10 +11526,10 @@ var $author$project$Main$cellToBlock = F3(
 			return $elm$core$Maybe$Just(
 				{
 					I: {J: position, K: rotation},
-					aU: $elm$core$String$fromInt(x) + (',' + ($elm$core$String$fromInt(y) + (',' + $elm$core$String$fromInt(z)))),
-					az: okada,
-					aB: $author$project$Motion$staticPositionAnimation(position),
-					aE: $author$project$Motion$staticRotateAnimation(rotation.C),
+					aW: $elm$core$String$fromInt(x) + (',' + ($elm$core$String$fromInt(y) + (',' + $elm$core$String$fromInt(z)))),
+					Q: okada,
+					aC: $author$project$Motion$staticPositionAnimation(position),
+					aF: $author$project$Motion$staticRotateAnimation(rotation.C),
 					M: rotation
 				});
 		} else {
@@ -11611,7 +11618,7 @@ var $elm_explorations$webgl$WebGL$entity = $elm_explorations$webgl$WebGL$entityW
 var $author$project$Shader$fragmentShader = {
 	src: '\n\n        precision mediump float;\n        uniform float shade;\n        varying vec3 vcolor;\n        void main () {\n            gl_FragColor = shade * vec4(vcolor, 1.0);\n        }\n\n    ',
 	attributes: {},
-	uniforms: {shade: 'bf'}
+	uniforms: {shade: 'bj'}
 };
 var $elm_explorations$linear_algebra$Math$Matrix4$mul = _MJS_m4x4mul;
 var $elm_explorations$linear_algebra$Math$Matrix4$makeRotate = _MJS_m4x4makeRotate;
@@ -11620,7 +11627,7 @@ var $author$project$Shader$rotationToMat = function (r) {
 };
 var $author$project$Main$toMesh = F2(
 	function (set, block) {
-		return (!block.az) ? set.ay : set.at;
+		return (!block.Q) ? set.aA : set.av;
 	});
 var $elm_explorations$linear_algebra$Math$Matrix4$makeLookAt = _MJS_m4x4makeLookAt;
 var $elm_explorations$linear_algebra$Math$Matrix4$transform = _MJS_v3mul4x4;
@@ -11654,16 +11661,16 @@ var $author$project$Shader$uniforms = F4(
 	function (camera, perspective, position, rotation) {
 		return {
 			G: $author$project$Shader$cameraLootAk(camera),
-			a5: perspective,
+			a7: perspective,
 			K: rotation,
-			bf: 0.8,
-			bi: $elm_explorations$linear_algebra$Math$Matrix4$makeTranslate(position)
+			bj: 0.8,
+			bm: $elm_explorations$linear_algebra$Math$Matrix4$makeTranslate(position)
 		};
 	});
 var $author$project$Shader$vertexShader = {
 	src: '\n\n        attribute vec3 position;\n        attribute vec3 color;\n        uniform mat4 perspective;\n        uniform mat4 camera;\n        uniform mat4 rotation;\n        uniform mat4 translation;\n        varying vec3 vcolor;\n        void main () {\n            gl_Position = perspective * camera * translation * rotation * vec4(position, 1.0);\n            vcolor = color;\n        }\n\n    ',
-	attributes: {color: 'bu', position: 'J'},
-	uniforms: {camera: 'G', perspective: 'a5', rotation: 'K', translation: 'bi'}
+	attributes: {color: 'bx', position: 'J'},
+	uniforms: {camera: 'G', perspective: 'a7', rotation: 'K', translation: 'bm'}
 };
 var $author$project$Main$entity = F4(
 	function (camera, perspective, set, block) {
@@ -11947,7 +11954,7 @@ var $elm$html$Html$Attributes$href = function (url) {
 		_VirtualDom_noJavaScriptUri(url));
 };
 var $zaboco$elm_draggable$Draggable$alwaysPreventDefaultAndStopPropagation = function (msg) {
-	return {x: msg, aC: true, aH: true};
+	return {x: msg, aD: true, aI: true};
 };
 var $zaboco$elm_draggable$Internal$StartDragging = F2(
 	function (a, b) {
@@ -12306,14 +12313,14 @@ var $elm$core$List$head = function (list) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
-var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$defaultOptions = {aC: true, aH: false};
+var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$defaultOptions = {aD: true, aI: false};
 var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$Event = F4(
 	function (keys, changedTouches, targetTouches, touches) {
-		return {bs: changedTouches, bK: keys, cj: targetTouches, cn: touches};
+		return {bv: changedTouches, bN: keys, cm: targetTouches, cq: touches};
 	});
 var $mpizenberg$elm_pointer_events$Internal$Decode$Keys = F3(
 	function (alt, ctrl, shift) {
-		return {bn: alt, bx: ctrl, ch: shift};
+		return {br: alt, bA: ctrl, ck: shift};
 	});
 var $elm$json$Json$Decode$bool = _Json_decodeBool;
 var $elm$json$Json$Decode$map3 = _Json_map3;
@@ -12326,7 +12333,7 @@ var $mpizenberg$elm_pointer_events$Internal$Decode$keys = A4(
 var $elm$json$Json$Decode$map4 = _Json_map4;
 var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$Touch = F4(
 	function (identifier, clientPos, pagePos, screenPos) {
-		return {bt: clientPos, bG: identifier, ca: pagePos, cg: screenPos};
+		return {bw: clientPos, bJ: identifier, cd: pagePos, cj: screenPos};
 	});
 var $mpizenberg$elm_pointer_events$Internal$Decode$clientPos = A3(
 	$elm$json$Json$Decode$map2,
@@ -12409,8 +12416,8 @@ var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onWithOptions = F3(
 				function (ev) {
 					return {
 						x: tag(ev),
-						aC: options.aC,
-						aH: options.aH
+						aD: options.aD,
+						aI: options.aI
 					};
 				},
 				$mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$eventDecoder));
@@ -12436,9 +12443,9 @@ var $zaboco$elm_draggable$Draggable$touchTriggers = F2(
 					A2(
 						$elm$core$Maybe$map,
 						function ($) {
-							return $.bt;
+							return $.bw;
 						},
-						$elm$core$List$head(touchEvent.bs))));
+						$elm$core$List$head(touchEvent.bv))));
 		};
 		var mouseToEnv = function (internal) {
 			return A2(
@@ -12470,12 +12477,12 @@ var $elm$html$Html$Attributes$width = function (n) {
 		$elm$core$String$fromInt(n));
 };
 var $author$project$Main$view = function (model) {
-	var perspective = $author$project$Main$getPerspective(model.ao);
-	var _v0 = model.ao;
+	var perspective = $author$project$Main$getPerspective(model.ap);
+	var _v0 = model.ap;
 	var w = _v0.a;
 	var h = _v0.b;
 	return {
-		bp: _List_fromArray(
+		au: _List_fromArray(
 			[
 				A2(
 				$elm$html$Html$div,
@@ -12516,7 +12523,7 @@ var $author$project$Main$view = function (model) {
 										_List_fromArray(
 											[
 												$elm$html$Html$text(
-												$author$project$Main$timeText(model.S))
+												$author$project$Main$timeText(model.T))
 											]))
 									])),
 								A2(
@@ -12542,8 +12549,8 @@ var $author$project$Main$view = function (model) {
 												]),
 											A2($zaboco$elm_draggable$Draggable$touchTriggers, 'my-element', $author$project$Main$DragMsg)),
 										_Utils_ap(
-											A4($author$project$Main$fieldEntities, model.G, perspective, model.ah.aN, model.ac),
-											A4($author$project$Main$fieldLineEntities, model.G, perspective, model.ah.aX, model.ac)))
+											A4($author$project$Main$fieldEntities, model.G, perspective, model.ai.aO, model.ad),
+											A4($author$project$Main$fieldLineEntities, model.G, perspective, model.ai.aZ, model.ad)))
 									])),
 								A2(
 								$elm$html$Html$div,
@@ -12635,10 +12642,10 @@ var $author$project$Main$view = function (model) {
 							]))
 					]))
 			]),
-		cm: '岡田スネーク3D'
+		cp: '岡田スネーク3D'
 	};
 };
 var $author$project$Main$main = $elm$browser$Browser$document(
-	{bI: $author$project$Main$init, ci: $author$project$Main$subscriptions, co: $author$project$Main$update, cp: $author$project$Main$view});
+	{bL: $author$project$Main$init, cl: $author$project$Main$subscriptions, cr: $author$project$Main$update, cs: $author$project$Main$view});
 _Platform_export({'Main':{'init':$author$project$Main$main(
 	$elm$json$Json$Decode$succeed(0))(0)}});}(this));
