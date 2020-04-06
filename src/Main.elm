@@ -31,8 +31,6 @@ type alias GeoBlock =
     , okada : Okada
     , geo : Shader.Geo
     , turning : Shader.Rotation
-    , rotateAnimation : Animation
-    , positionAnimation : Motion.PositionAnimation
     }
 
 
@@ -44,6 +42,8 @@ type Cell
 type alias PlayerCell =
     { okada : Okada
     , point : Grid.Point
+    , rotation : Shader.Rotation
+    , turning : Shader.Rotation
     }
 
 
@@ -87,21 +87,6 @@ playerBodyColor =
     ( vec3 230 184 85, vec3 186 147 64 )
 
 
-animateGeoBlock : Float -> GeoBlock -> GeoBlock
-animateGeoBlock t current =
-    let
-        rotated =
-            Motion.animateRotate t current.rotateAnimation current.geo
-
-        nextGeo =
-            Motion.animatePosition t current.positionAnimation rotated
-
-        nextTurning =
-            { radian = current.turning.radian + pi / 300, axis = current.turning.axis }
-    in
-    { current | geo = nextGeo, turning = nextTurning }
-
-
 type alias MeshSet =
     { oka : Mesh Shader.Vertex
     , da : Mesh Shader.Vertex
@@ -125,11 +110,21 @@ type alias Model =
     }
 
 
+type MoveTo
+    = Xplus
+    | Xminus
+    | Yplus
+    | Yminus
+    | Zplus
+    | Zminus
+
+
 type Msg
     = Reset
     | Delta Float
     | OnDragBy Draggable.Delta
     | DragMsg (Draggable.Msg String)
+    | Move MoveTo
 
 
 dragConfig : Draggable.Config String Msg
@@ -172,8 +167,8 @@ initModel level =
     { time = 0
     , field = f
     , player =
-        { head = { okada = Oka, point = ( 1, 0, 0 ) }
-        , body = [ { okada = Da, point = ( 0, 0, 0 ) } ]
+        { head = { okada = Oka, point = ( 1, 0, 0 ), rotation = { radian = 0, axis = vec3 0 1 0 }, turning = { radian = 0, axis = vec3 0 1 0 } }
+        , body = [ { okada = Da, point = ( 0, 0, 0 ), rotation = { radian = 0, axis = vec3 0 1 0 }, turning = { radian = 0, axis = vec3 0 1 0 } } ]
         }
     , camera = ( cameraRadius level, pi / 8, pi / 16 )
     , size = ( 400, 600 )
@@ -237,6 +232,27 @@ update msg model =
                                     Empty ->
                                         Empty
                             )
+                , player =
+                    { head =
+                        let
+                            head =
+                                model.player.head
+
+                            turning =
+                                head.turning
+                        in
+                        { head | turning = { turning | radian = turning.radian + (dt / 1000) } }
+                    , body =
+                        model.player.body
+                            |> List.map
+                                (\pc ->
+                                    let
+                                        turning =
+                                            pc.turning
+                                    in
+                                    { pc | turning = { turning | radian = turning.radian + (dt / 1000) } }
+                                )
+                    }
               }
             , Cmd.none
             )
@@ -251,6 +267,51 @@ update msg model =
 
         DragMsg dragMsg ->
             Draggable.update dragConfig dragMsg model
+
+        Move moveTo ->
+            ( { model
+                | player = move moveTo model.player
+              }
+            , Cmd.none
+            )
+
+
+move : MoveTo -> Player -> Player
+move moveTo player =
+    let
+        head =
+            player.head
+
+        plus ( a, b, c ) ( aa, bb, cc ) =
+            ( a + aa, b + bb, c + cc )
+
+        ( dif, rotation ) =
+            case moveTo of
+                Xplus ->
+                    ( ( 1, 0, 0 ), { radian = pi / 2, axis = vec3 0 0 -1 } )
+
+                Xminus ->
+                    ( ( -1, 0, 0 ), { radian = pi / 2, axis = vec3 0 0 1 } )
+
+                Yplus ->
+                    ( ( 0, 1, 0 ), { radian = 0, axis = vec3 0 0 -1 } )
+
+                Yminus ->
+                    ( ( 0, -1, 0 ), { radian = pi, axis = vec3 0 0 1 } )
+
+                Zplus ->
+                    ( ( 0, 0, 1 ), { radian = pi / 2, axis = vec3 1 0 0 } )
+
+                Zminus ->
+                    ( ( 0, 0, -1 ), { radian = pi / 2, axis = vec3 -1 0 0 } )
+
+        body =
+            head :: List.take (List.length player.body - 1) player.body
+    in
+    { player
+        | head = { head | point = plus player.head.point dif, rotation = rotation }
+        , body = body
+    }
 
 
 subscriptions : Model -> Sub Msg
@@ -348,6 +409,32 @@ view model =
                         , Html.span [] [ Html.text "??" ]
                         ]
                     ]
+                , Html.div []
+                    [ button
+                        [ Html.Events.onClick (Move Xplus)
+                        ]
+                        [ Html.text "X+" ]
+                    , button
+                        [ Html.Events.onClick (Move Xminus)
+                        ]
+                        [ Html.text "X-" ]
+                    , button
+                        [ Html.Events.onClick (Move Yplus)
+                        ]
+                        [ Html.text "Y+" ]
+                    , button
+                        [ Html.Events.onClick (Move Yminus)
+                        ]
+                        [ Html.text "Y-" ]
+                    , button
+                        [ Html.Events.onClick (Move Zplus)
+                        ]
+                        [ Html.text "Z+" ]
+                    , button
+                        [ Html.Events.onClick (Move Zminus)
+                        ]
+                        [ Html.text "Z-" ]
+                    ]
                 , Html.div
                     [ style "text-align" "center"
                     ]
@@ -402,8 +489,6 @@ cellToBlock lineSize point cell =
                 , okada = okada
                 , geo = { position = position, rotation = rotation }
                 , turning = turning
-                , rotateAnimation = Motion.staticRotateAnimation rotation.radian
-                , positionAnimation = Motion.staticPositionAnimation position
                 }
 
         _ ->
@@ -511,16 +596,11 @@ playerCellToBlock fieldSize pcell =
 
         position =
             pointToPosition fieldSize point
-
-        rotation =
-            { radian = 0, axis = vec3 0 1 0 }
     in
     { id = String.fromInt x ++ "," ++ String.fromInt y ++ "," ++ String.fromInt z
     , okada = pcell.okada
-    , geo = { position = position, rotation = rotation }
-    , turning = rotation
-    , rotateAnimation = Motion.staticRotateAnimation rotation.radian
-    , positionAnimation = Motion.staticPositionAnimation position
+    , geo = { position = position, rotation = pcell.rotation }
+    , turning = pcell.turning
     }
 
 
