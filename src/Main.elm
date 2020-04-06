@@ -146,9 +146,9 @@ initModel level =
             field
     in
     { time = 0
-    , size = ( 400, 600 )
     , field = f
     , camera = ( cameraRadius level, pi / 8, pi / 16 )
+    , size = ( 400, 600 )
     , downTime = 0
     , drag = Draggable.init
     , meshMap =
