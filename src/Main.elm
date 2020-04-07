@@ -24,6 +24,7 @@ import WebGL exposing (Mesh)
 type Okada
     = Oka
     | Da
+    | Box
 
 
 type alias GeoBlock =
@@ -105,6 +106,7 @@ type alias Model =
         , playerHead : MeshSet
         , playerBody : MeshSet
         , line : Mesh Shader.Vertex
+        , moveTargetBox : Mesh Shader.Vertex
         }
     }
 
@@ -177,6 +179,7 @@ initModel level =
         , playerHead = { oka = okadaMesh playerHeadColor Oka, da = okadaMesh playerHeadColor Da }
         , playerBody = { oka = okadaMesh playerBodyColor Oka, da = okadaMesh playerBodyColor Da }
         , line = Block.lineLoopMesh (vec3 180 180 180) [ vec3 0 0 0, vec3 0 1 0 ]
+        , moveTargetBox = Block.meshCube
         }
     }
 
@@ -187,7 +190,7 @@ okadaMesh ( faceColor, sideColor ) okada =
         Oka ->
             Block.meshOka faceColor sideColor
 
-        Da ->
+        _ ->
             Block.meshDa faceColor sideColor
 
 
@@ -452,6 +455,12 @@ view model =
                                 ( model.meshMap.playerHead, model.meshMap.playerBody )
                                 (Array.length model.field)
                                 model.player
+                            ++ moveTargetBoxBlockEntities
+                                model.camera
+                                perspective
+                                model.meshMap.moveTargetBox
+                                model.field
+                                model.player
                         )
                     ]
                 , Html.div
@@ -532,6 +541,50 @@ timeText time =
 cellSize : Float
 cellSize =
     1.3
+
+
+moveTargetBoxBlockEntities : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex -> Grid Cell -> Player -> List WebGL.Entity
+moveTargetBoxBlockEntities camera perspective mesh field player =
+    moveTargetBoxBlockList field player
+        |> List.map
+            (\geo ->
+                WebGL.entity
+                    Shader.vertexShader
+                    Shader.fragmentShader
+                    mesh
+                    (Shader.uniforms camera perspective geo.position (Shader.rotationToMat geo.rotation))
+            )
+
+
+moveTargetBoxBlockList : Grid Cell -> Player -> List Shader.Geo
+moveTargetBoxBlockList field player =
+    [ moveTargetBoxBlock field player ( Xplus, { position = vec3 -0.5 0 0, rotation = { radian = pi / 2, axis = vec3 0 1 0 } } )
+    , moveTargetBoxBlock field player ( Xminus, { position = vec3 0.5 0 0, rotation = { radian = pi / 2, axis = vec3 0 1 0 } } )
+    , moveTargetBoxBlock field player ( Yplus, { position = vec3 0 -0.5 0, rotation = { radian = pi / 2, axis = vec3 1 0 0 } } )
+    , moveTargetBoxBlock field player ( Yminus, { position = vec3 0 0.5 0, rotation = { radian = pi / 2, axis = vec3 1 0 0 } } )
+    , moveTargetBoxBlock field player ( Zplus, { position = vec3 0 0 -0.5, rotation = { radian = 0, axis = vec3 0 1 0 } } )
+    , moveTargetBoxBlock field player ( Zminus, { position = vec3 0 0 0.5, rotation = { radian = 0, axis = vec3 0 1 0 } } )
+    ]
+        |> Maybe.Extra.values
+
+
+moveTargetBoxBlock : Grid Cell -> Player -> ( MoveTo, Shader.Geo ) -> Maybe Shader.Geo
+moveTargetBoxBlock field player ( moveTo, geo ) =
+    let
+        next =
+            move moveTo player
+
+        position =
+            pointToPosition (Grid.length field) next.head.point
+    in
+    if validMove field next then
+        Just
+            { position = Vec3.add position geo.position
+            , rotation = geo.rotation
+            }
+
+    else
+        Nothing
 
 
 pointToPosition : Int -> Grid.Point -> Vec3
