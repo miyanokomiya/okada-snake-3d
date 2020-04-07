@@ -1,4 +1,11 @@
-module Asset exposing (cube, daFace, daSide, okaFace, okaSide)
+module Asset exposing
+    ( cube
+    , cubeLine
+    , daFace
+    , daSide
+    , okaFace
+    , okaSide
+    )
 
 import Math.Vector3 as Vec3 exposing (Vec3, add, vec3)
 import WebGL exposing (Mesh)
@@ -8,8 +15,8 @@ type alias Triangle =
     ( Vec3, Vec3, Vec3 )
 
 
-cube : List (List Triangle)
-cube =
+cubePoints : { a1 : Vec3, a2 : Vec3, a3 : Vec3, a4 : Vec3, b : Vec3 }
+cubePoints =
     let
         a1 =
             vec3 -0.3 -0.3 0.1
@@ -26,12 +33,38 @@ cube =
         b =
             vec3 0 0 -0.4
     in
-    [ [ ( a1, a2, a3 )
-      , ( a2, a4, a3 )
-      , ( a1, b, a2 )
-      , ( a2, b, a4 )
-      , ( a4, b, a3 )
-      , ( a3, b, a1 )
+    { a1 = a1, a2 = a2, a3 = a3, a4 = a4, b = b }
+
+
+cubeLine : List ( Vec3, Vec3 )
+cubeLine =
+    let
+        point =
+            cubePoints
+    in
+    [ ( point.a1, point.a2 )
+    , ( point.a2, point.a4 )
+    , ( point.a4, point.a3 )
+    , ( point.a3, point.a1 )
+    , ( point.a1, point.b )
+    , ( point.a2, point.b )
+    , ( point.a3, point.b )
+    , ( point.a4, point.b )
+    ]
+
+
+cube : List (List Triangle)
+cube =
+    let
+        point =
+            cubePoints
+    in
+    [ [ ( point.a1, point.a2, point.a3 )
+      , ( point.a2, point.a4, point.a3 )
+      , ( point.a1, point.b, point.a2 )
+      , ( point.a2, point.b, point.a4 )
+      , ( point.a4, point.b, point.a3 )
+      , ( point.a3, point.b, point.a1 )
       ]
     ]
 

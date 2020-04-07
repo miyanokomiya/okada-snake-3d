@@ -110,6 +110,7 @@ type alias Model =
         , playerBody : MeshSet
         , line : Mesh Shader.Vertex
         , moveTargetBox : Mesh Shader.Vertex
+        , moveTargetBoxLine : Mesh Shader.Vertex
         }
     }
 
@@ -184,6 +185,7 @@ initModel level =
         , playerBody = { oka = okadaMesh playerBodyColor Oka, da = okadaMesh playerBodyColor Da }
         , line = Block.lineLoopMesh (vec3 180 180 180) [ vec3 0 0 0, vec3 0 1 0 ]
         , moveTargetBox = Block.meshCube
+        , moveTargetBoxLine = Block.meshCubeLine
         }
     }
 
@@ -519,7 +521,7 @@ view model =
                             ++ moveTargetBoxBlockEntities
                                 model.camera
                                 perspective
-                                model.meshMap.moveTargetBox
+                                ( model.meshMap.moveTargetBox, model.meshMap.moveTargetBoxLine )
                                 model.field
                                 model.player
                         )
@@ -604,17 +606,26 @@ cellSize =
     1.3
 
 
-moveTargetBoxBlockEntities : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex -> Grid Cell -> Player -> List WebGL.Entity
-moveTargetBoxBlockEntities camera perspective mesh field player =
+moveTargetBoxBlockEntities :
+    Shader.OrbitCamela
+    -> Mat4
+    -> ( Mesh Shader.Vertex, Mesh Shader.Vertex )
+    -> Grid Cell
+    -> Player
+    -> List WebGL.Entity
+moveTargetBoxBlockEntities camera perspective ( mesh, linesMesh ) field player =
     moveTargetBoxBlockList field player
         |> List.map
             (\( _, geo ) ->
-                WebGL.entity
-                    Shader.vertexShader
-                    Shader.fragmentShader
-                    mesh
-                    (Shader.uniforms camera perspective geo.position (Shader.rotationToMat geo.rotation))
+                let
+                    uni =
+                        Shader.uniforms camera perspective geo.position (Shader.rotationToMat geo.rotation)
+                in
+                [ WebGL.entity Shader.vertexShader Shader.fragmentShader mesh uni
+                , WebGL.entity Shader.vertexShader Shader.fragmentShader linesMesh uni
+                ]
             )
+        |> List.concat
 
 
 moveTargetBoxBlockList : Grid Cell -> Player -> List ( MoveTo, Shader.Geo )

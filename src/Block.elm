@@ -2,6 +2,7 @@ module Block exposing
     ( lineLoopMesh
     , mesh
     , meshCube
+    , meshCubeLine
     , meshDa
     , meshOka
     )
@@ -19,6 +20,18 @@ lineLoopMesh color list =
         |> WebGL.lineLoop
 
 
+linesMesh : Vec3 -> List ( Vec3, Vec3 ) -> Mesh Shader.Vertex
+linesMesh color list =
+    list
+        |> List.map
+            (\( a, b ) ->
+                ( Shader.Vertex (Vec3.scale (1 / 255) color) a
+                , Shader.Vertex (Vec3.scale (1 / 255) color) b
+                )
+            )
+        |> WebGL.lines
+
+
 mesh : List ( Shader.Triangle, Vec3 ) -> Mesh Shader.Vertex
 mesh list =
     list
@@ -34,6 +47,11 @@ meshCube =
         |> List.map (\tri -> ( tri, Vec3.vec3 0 0 255 ))
     )
         |> mesh
+
+
+meshCubeLine : Mesh Shader.Vertex
+meshCubeLine =
+    linesMesh (Vec3.vec3 0 0 0) Asset.cubeLine
 
 
 meshOka : Vec3 -> Vec3 -> Mesh Shader.Vertex
