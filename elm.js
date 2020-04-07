@@ -6834,7 +6834,7 @@ var $elm$browser$Browser$document = _Browser_document;
 var $author$project$Main$Da = 1;
 var $author$project$Main$Oka = 0;
 var $author$project$Main$cameraRadius = function (level) {
-	return 10 + (4 * level);
+	return 3 + (4 * level);
 };
 var $elm_explorations$linear_algebra$Math$Vector3$vec3 = _MJS_v3;
 var $author$project$Main$defaultColor = _Utils_Tuple2(
@@ -6937,30 +6937,21 @@ var $elm$core$Basics$negate = function (n) {
 	return -n;
 };
 var $author$project$Asset$cube = function () {
-	var b4 = A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0.4, 0.4, -0.1);
-	var b3 = A3($elm_explorations$linear_algebra$Math$Vector3$vec3, -0.4, 0.4, -0.1);
-	var b2 = A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0.4, -0.4, -0.1);
-	var b1 = A3($elm_explorations$linear_algebra$Math$Vector3$vec3, -0.4, -0.4, -0.1);
-	var a4 = A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0.4, 0.4, 0.1);
-	var a3 = A3($elm_explorations$linear_algebra$Math$Vector3$vec3, -0.4, 0.4, 0.1);
-	var a2 = A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0.4, -0.4, 0.1);
-	var a1 = A3($elm_explorations$linear_algebra$Math$Vector3$vec3, -0.4, -0.4, 0.1);
+	var b = A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, -0.4);
+	var a4 = A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0.3, 0.3, 0.1);
+	var a3 = A3($elm_explorations$linear_algebra$Math$Vector3$vec3, -0.3, 0.3, 0.1);
+	var a2 = A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0.3, -0.3, 0.1);
+	var a1 = A3($elm_explorations$linear_algebra$Math$Vector3$vec3, -0.3, -0.3, 0.1);
 	return _List_fromArray(
 		[
 			_List_fromArray(
 			[
 				_Utils_Tuple3(a1, a2, a3),
 				_Utils_Tuple3(a2, a4, a3),
-				_Utils_Tuple3(b2, b1, b4),
-				_Utils_Tuple3(b1, b3, b4),
-				_Utils_Tuple3(b1, a1, b3),
-				_Utils_Tuple3(a1, a3, b3),
-				_Utils_Tuple3(a2, b2, a4),
-				_Utils_Tuple3(b2, b4, a4),
-				_Utils_Tuple3(b1, b2, a1),
-				_Utils_Tuple3(b2, a2, a1),
-				_Utils_Tuple3(a3, a4, b3),
-				_Utils_Tuple3(a4, b4, b3)
+				_Utils_Tuple3(a1, b, a2),
+				_Utils_Tuple3(a2, b, a4),
+				_Utils_Tuple3(a4, b, a3),
+				_Utils_Tuple3(a3, b, a1)
 			])
 		]);
 }();
@@ -7007,7 +6998,7 @@ var $author$project$Block$meshCube = $author$project$Block$mesh(
 		function (tri) {
 			return _Utils_Tuple2(
 				tri,
-				A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 255, 0, 0));
+				A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, 255));
 		},
 		$elm$core$List$concat($author$project$Asset$cube)));
 var $author$project$Asset$daFace = _List_fromArray(
@@ -12022,7 +12013,7 @@ var $author$project$Main$moveTargetBoxBlockList = F2(
 						{
 							h: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, -0.5, 0, 0),
 							c: {
-								b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
+								b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, -1, 0),
 								a: $elm$core$Basics$pi / 2
 							}
 						})),
@@ -12061,7 +12052,7 @@ var $author$project$Main$moveTargetBoxBlockList = F2(
 						{
 							h: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0.5, 0),
 							c: {
-								b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 1, 0, 0),
+								b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, -1, 0, 0),
 								a: $elm$core$Basics$pi / 2
 							}
 						})),
@@ -12075,7 +12066,7 @@ var $author$project$Main$moveTargetBoxBlockList = F2(
 							h: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, -0.5),
 							c: {
 								b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
-								a: 0
+								a: $elm$core$Basics$pi
 							}
 						})),
 					A3(
