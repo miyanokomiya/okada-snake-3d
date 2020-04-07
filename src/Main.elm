@@ -2,6 +2,7 @@ module Main exposing (main)
 
 import Animation exposing (Animation)
 import Array
+import Asset
 import Block
 import Browser
 import Browser.Events exposing (onAnimationFrameDelta)
@@ -10,10 +11,12 @@ import Grid exposing (Grid)
 import Html exposing (Html)
 import Html.Attributes exposing (height, style, width)
 import Html.Events
+import Html.Events.Extra.Mouse as Mouse
 import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Maybe.Extra
 import Motion
+import Pointer
 import Random
 import Random.Extra
 import Round
@@ -126,6 +129,7 @@ type Msg
     | OnDragBy Draggable.Delta
     | DragMsg (Draggable.Msg String)
     | Move MoveTo
+    | ClickMsg ( Float, Float )
 
 
 dragConfig : Draggable.Config String Msg
@@ -202,6 +206,9 @@ limitRadian r =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
+        ( width, height ) =
+            model.size
+
         ( cr, ca, cb ) =
             model.camera
     in
@@ -258,13 +265,32 @@ update msg model =
         DragMsg dragMsg ->
             Draggable.update dragConfig dragMsg model
 
+        ClickMsg ( x, y ) ->
+            if model.downTime < 10 then
+                let
+                    maybeMoveTo =
+                        getClickedMoveTo model ( (x * 2) / toFloat width - 1, 1 - y / toFloat height * 2 )
+
+                    ( nextField, nextPlayer ) =
+                        case maybeMoveTo of
+                            Just moveTo ->
+                                moveAndEat moveTo model.field model.player
+
+                            Nothing ->
+                                ( model.field, model.player )
+                in
+                ( { model | downTime = 0, field = nextField, player = nextPlayer }, Cmd.none )
+
+            else
+                ( { model | downTime = 0 }, Cmd.none )
+
         Move moveTo ->
             let
-                ( nextFiled, nextPlayer ) =
+                ( nextField, nextPlayer ) =
                     moveAndEat moveTo model.field model.player
             in
             ( { model
-                | field = nextFiled
+                | field = nextField
                 , player = nextPlayer
               }
             , Cmd.none
@@ -389,6 +415,39 @@ move moveTo player =
     }
 
 
+getClickedMoveTo : Model -> ( Float, Float ) -> Maybe MoveTo
+getClickedMoveTo model pos =
+    let
+        origin =
+            Shader.orbitCamelaPosition model.camera
+
+        destination =
+            Shader.getClickPosition model.camera (getPerspective model.size) pos
+
+        direction =
+            Vec3.direction destination origin
+    in
+    moveTargetBoxBlockList model.field model.player
+        |> List.map
+            (\( moveTo, geo ) ->
+                let
+                    mat =
+                        blockTransFormMat geo
+
+                    triangles =
+                        List.map (\( v0, v1, v2 ) -> ( Mat4.transform mat v0, Mat4.transform mat v1, Mat4.transform mat v2 )) (List.concat Asset.cube)
+                in
+                ( triangles, moveTo )
+            )
+        |> Shader.getClickedMesh origin direction
+        |> Maybe.map (\moveTo -> moveTo)
+
+
+blockTransFormMat : Shader.Geo -> Mat4
+blockTransFormMat geo =
+    Mat4.mul (Mat4.makeTranslate geo.position) (Shader.rotationToMat geo.rotation)
+
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
@@ -428,6 +487,8 @@ view model =
                 , Html.div
                     [ width w
                     , height h
+                    , Mouse.onClick (.offsetPos >> ClickMsg)
+                    , Pointer.onTouchEndWithPosition ClickMsg
                     ]
                     [ WebGL.toHtml
                         ([ width w
@@ -547,7 +608,7 @@ moveTargetBoxBlockEntities : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex ->
 moveTargetBoxBlockEntities camera perspective mesh field player =
     moveTargetBoxBlockList field player
         |> List.map
-            (\geo ->
+            (\( _, geo ) ->
                 WebGL.entity
                     Shader.vertexShader
                     Shader.fragmentShader
@@ -556,7 +617,7 @@ moveTargetBoxBlockEntities camera perspective mesh field player =
             )
 
 
-moveTargetBoxBlockList : Grid Cell -> Player -> List Shader.Geo
+moveTargetBoxBlockList : Grid Cell -> Player -> List ( MoveTo, Shader.Geo )
 moveTargetBoxBlockList field player =
     [ moveTargetBoxBlock field player ( Xplus, { position = vec3 -0.5 0 0, rotation = { radian = pi / 2, axis = vec3 0 1 0 } } )
     , moveTargetBoxBlock field player ( Xminus, { position = vec3 0.5 0 0, rotation = { radian = pi / 2, axis = vec3 0 1 0 } } )
@@ -568,7 +629,7 @@ moveTargetBoxBlockList field player =
         |> Maybe.Extra.values
 
 
-moveTargetBoxBlock : Grid Cell -> Player -> ( MoveTo, Shader.Geo ) -> Maybe Shader.Geo
+moveTargetBoxBlock : Grid Cell -> Player -> ( MoveTo, Shader.Geo ) -> Maybe ( MoveTo, Shader.Geo )
 moveTargetBoxBlock field player ( moveTo, geo ) =
     let
         next =
@@ -579,9 +640,11 @@ moveTargetBoxBlock field player ( moveTo, geo ) =
     in
     if validMove field next then
         Just
-            { position = Vec3.add position geo.position
-            , rotation = geo.rotation
-            }
+            ( moveTo
+            , { position = Vec3.add position geo.position
+              , rotation = geo.rotation
+              }
+            )
 
     else
         Nothing
