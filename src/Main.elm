@@ -40,15 +40,14 @@ type Cell
 
 
 type alias PlayerCell =
-    { okada : Okada
-    , point : Grid.Point
+    { point : Grid.Point
     , rotation : Shader.Rotation
     , turning : Shader.Rotation
     }
 
 
-field : Grid Cell
-field =
+initField : Grid Cell
+initField =
     Grid.initialize 4
         (\( x, y, z ) ->
             if modBy 5 (x + y + z) == 0 then
@@ -160,15 +159,14 @@ cameraRadius level =
 
 initModel : Int -> Model
 initModel level =
-    let
-        f =
-            field
-    in
     { time = 0
-    , field = f
+    , field = initField
     , player =
-        { head = { okada = Oka, point = ( 1, 0, 0 ), rotation = { radian = 0, axis = vec3 0 1 0 }, turning = { radian = 0, axis = vec3 0 1 0 } }
-        , body = [ { okada = Da, point = ( 0, 0, 0 ), rotation = { radian = 0, axis = vec3 0 1 0 }, turning = { radian = 0, axis = vec3 0 1 0 } } ]
+        { head = { point = ( 0, 2, 0 ), rotation = { radian = 0, axis = vec3 0 1 0 }, turning = { radian = 0, axis = vec3 0 1 0 } }
+        , body =
+            [ { point = ( 0, 1, 0 ), rotation = { radian = 0, axis = vec3 0 1 0 }, turning = { radian = 0, axis = vec3 0 1 0 } }
+            , { point = ( 0, 0, 0 ), rotation = { radian = 0, axis = vec3 0 1 0 }, turning = { radian = 0, axis = vec3 0 1 0 } }
+            ]
         }
     , camera = ( cameraRadius level, pi / 8, pi / 16 )
     , size = ( 400, 600 )
@@ -269,11 +267,73 @@ update msg model =
             Draggable.update dragConfig dragMsg model
 
         Move moveTo ->
+            let
+                movedPlayer =
+                    move moveTo model.player
+
+                nextPlayer =
+                    if validMove model.field movedPlayer then
+                        movedPlayer
+
+                    else
+                        model.player
+            in
             ( { model
-                | player = move moveTo model.player
+                | player = nextPlayer
               }
             , Cmd.none
             )
+
+
+tailOkada : Player -> Okada
+tailOkada player =
+    if modBy 2 (List.length player.body) == 0 then
+        Oka
+
+    else
+        Da
+
+
+validMove : Grid Cell -> Player -> Bool
+validMove field player =
+    let
+        min =
+            0
+
+        max =
+            Grid.length field - 1
+
+        ( x, y, z ) =
+            player.head.point
+
+        isInGrid a =
+            min <= a && a <= max
+
+        bodyPoints =
+            List.map (\c -> c.point) player.body
+
+        maybeCell =
+            Grid.get player.head.point field
+
+        tail =
+            tailOkada player
+    in
+    isInGrid x
+        && isInGrid y
+        && isInGrid z
+        && (List.member player.head.point bodyPoints == False)
+        && (case maybeCell of
+                Just cell ->
+                    case cell of
+                        Food okada _ _ ->
+                            okada /= tail
+
+                        _ ->
+                            True
+
+                Nothing ->
+                    True
+           )
 
 
 move : MoveTo -> Player -> Player
@@ -585,8 +645,8 @@ fieldEntities camera perspective set grid =
             )
 
 
-playerCellToBlock : Int -> PlayerCell -> GeoBlock
-playerCellToBlock fieldSize pcell =
+playerCellToBlock : Int -> Okada -> PlayerCell -> GeoBlock
+playerCellToBlock fieldSize okada pcell =
     let
         point =
             pcell.point
@@ -598,7 +658,7 @@ playerCellToBlock fieldSize pcell =
             pointToPosition fieldSize point
     in
     { id = String.fromInt x ++ "," ++ String.fromInt y ++ "," ++ String.fromInt z
-    , okada = pcell.okada
+    , okada = okada
     , geo = { position = position, rotation = pcell.rotation }
     , turning = pcell.turning
     }
@@ -606,10 +666,24 @@ playerCellToBlock fieldSize pcell =
 
 playerEntities : Shader.OrbitCamela -> Mat4 -> ( MeshSet, MeshSet ) -> Int -> Player -> List WebGL.Entity
 playerEntities camera perspective ( headSet, bodySet ) fieldSize player =
-    entity camera perspective headSet 1 (playerCellToBlock fieldSize player.head)
+    entity camera perspective headSet 1 (playerCellToBlock fieldSize Oka player.head)
         :: (player.body
-                |> List.map
-                    (\pcell -> entity camera perspective bodySet 0.8 (playerCellToBlock fieldSize pcell))
+                |> List.indexedMap
+                    (\i pcell ->
+                        entity camera
+                            perspective
+                            bodySet
+                            0.8
+                            (playerCellToBlock fieldSize
+                                (if modBy 2 i == 1 then
+                                    Oka
+
+                                 else
+                                    Da
+                                )
+                                pcell
+                            )
+                    )
            )
 
 
