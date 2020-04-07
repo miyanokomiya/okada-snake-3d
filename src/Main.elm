@@ -268,18 +268,12 @@ update msg model =
 
         Move moveTo ->
             let
-                movedPlayer =
-                    move moveTo model.player
-
-                nextPlayer =
-                    if validMove model.field movedPlayer then
-                        movedPlayer
-
-                    else
-                        model.player
+                ( nextFiled, nextPlayer ) =
+                    moveAndEat moveTo model.field model.player
             in
             ( { model
-                | player = nextPlayer
+                | field = nextFiled
+                , player = nextPlayer
               }
             , Cmd.none
             )
@@ -292,6 +286,35 @@ tailOkada player =
 
     else
         Da
+
+
+moveAndEat : MoveTo -> Grid Cell -> Player -> ( Grid Cell, Player )
+moveAndEat moveTo field player =
+    let
+        movedPlayer =
+            move moveTo player
+    in
+    if validMove field movedPlayer then
+        let
+            maybeCell =
+                Grid.get movedPlayer.head.point field
+        in
+        case maybeCell of
+            Just cell ->
+                case cell of
+                    Food _ _ _ ->
+                        ( Grid.set movedPlayer.head.point Empty field
+                        , { movedPlayer | body = player.head :: player.body }
+                        )
+
+                    _ ->
+                        ( field, movedPlayer )
+
+            Nothing ->
+                ( field, player )
+
+    else
+        ( field, player )
 
 
 validMove : Grid Cell -> Player -> Bool

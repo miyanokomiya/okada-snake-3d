@@ -8,6 +8,7 @@ module Grid exposing
     , length
     , map
     , repeat
+    , set
     , toList
     )
 
@@ -33,6 +34,19 @@ type alias Point =
 length : Grid a -> Int
 length grid =
     Array.length grid
+
+
+set : Point -> a -> Grid a -> Grid a
+set ( x, y, z ) item grid =
+    grid
+        |> map
+            (\( old, ( xx, yy, zz ) ) ->
+                if xx == x && yy == y && zz == z then
+                    item
+
+                else
+                    old
+            )
 
 
 get : Point -> Grid a -> Maybe a
