@@ -31,7 +31,7 @@ meshCube : Mesh Shader.Vertex
 meshCube =
     (Asset.cube
         |> List.concat
-        |> List.map (\tri -> ( tri, Vec3.vec3 255 0 0 ))
+        |> List.map (\tri -> ( tri, Vec3.vec3 0 0 255 ))
     )
         |> mesh
 

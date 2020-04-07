@@ -160,7 +160,7 @@ init _ =
 
 cameraRadius : Int -> Float
 cameraRadius level =
-    10 + toFloat (4 * level)
+    3 + toFloat (4 * level)
 
 
 initModel : Int -> Model
@@ -619,11 +619,11 @@ moveTargetBoxBlockEntities camera perspective mesh field player =
 
 moveTargetBoxBlockList : Grid Cell -> Player -> List ( MoveTo, Shader.Geo )
 moveTargetBoxBlockList field player =
-    [ moveTargetBoxBlock field player ( Xplus, { position = vec3 -0.5 0 0, rotation = { radian = pi / 2, axis = vec3 0 1 0 } } )
+    [ moveTargetBoxBlock field player ( Xplus, { position = vec3 -0.5 0 0, rotation = { radian = pi / 2, axis = vec3 0 -1 0 } } )
     , moveTargetBoxBlock field player ( Xminus, { position = vec3 0.5 0 0, rotation = { radian = pi / 2, axis = vec3 0 1 0 } } )
     , moveTargetBoxBlock field player ( Yplus, { position = vec3 0 -0.5 0, rotation = { radian = pi / 2, axis = vec3 1 0 0 } } )
-    , moveTargetBoxBlock field player ( Yminus, { position = vec3 0 0.5 0, rotation = { radian = pi / 2, axis = vec3 1 0 0 } } )
-    , moveTargetBoxBlock field player ( Zplus, { position = vec3 0 0 -0.5, rotation = { radian = 0, axis = vec3 0 1 0 } } )
+    , moveTargetBoxBlock field player ( Yminus, { position = vec3 0 0.5 0, rotation = { radian = pi / 2, axis = vec3 -1 0 0 } } )
+    , moveTargetBoxBlock field player ( Zplus, { position = vec3 0 0 -0.5, rotation = { radian = pi, axis = vec3 0 1 0 } } )
     , moveTargetBoxBlock field player ( Zminus, { position = vec3 0 0 0.5, rotation = { radian = 0, axis = vec3 0 1 0 } } )
     ]
         |> Maybe.Extra.values
