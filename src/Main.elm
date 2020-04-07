@@ -154,7 +154,7 @@ init _ =
 
 cameraRadius : Int -> Float
 cameraRadius level =
-    14 + toFloat (4 * level)
+    10 + toFloat (4 * level)
 
 
 initModel : Int -> Model
@@ -219,17 +219,6 @@ update msg model =
             in
             ( { model
                 | time = time
-                , field =
-                    model.field
-                        |> Grid.map
-                            (\( cell, _ ) ->
-                                case cell of
-                                    Food okada r t ->
-                                        Food okada r { radian = t.radian + (dt / 1000), axis = t.axis }
-
-                                    Empty ->
-                                        Empty
-                            )
                 , player =
                     { head =
                         let
@@ -664,7 +653,7 @@ fieldEntities camera perspective set grid =
         |> Maybe.Extra.values
         |> List.map
             (\block ->
-                entity camera perspective set 0.5 block
+                frontEntity camera perspective set 0.5 block
             )
 
 
@@ -721,6 +710,22 @@ entity camera perspective set scale block =
 
         transfrom =
             Mat4.mul (Mat4.mul (Shader.rotationToMat r) (Shader.rotationToMat block.turning)) (Mat4.makeScale3 scale scale scale)
+    in
+    WebGL.entity
+        Shader.vertexShader
+        Shader.fragmentShader
+        (toMesh set block)
+        (Shader.uniforms camera perspective p transfrom)
+
+
+frontEntity : Shader.OrbitCamela -> Mat4 -> MeshSet -> Float -> GeoBlock -> WebGL.Entity
+frontEntity camera perspective set scale block =
+    let
+        p =
+            block.geo.position
+
+        transfrom =
+            Mat4.mul (Shader.orbitCamelaRotation camera) (Mat4.makeScale3 scale scale scale)
     in
     WebGL.entity
         Shader.vertexShader

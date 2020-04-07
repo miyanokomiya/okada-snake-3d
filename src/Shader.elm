@@ -6,9 +6,10 @@ module Shader exposing
     , Vertex
     , fragmentShader
     , getClickPosition
-    , isMeshClicked
     , getClickedMesh
+    , isMeshClicked
     , orbitCamelaPosition
+    , orbitCamelaRotation
     , rotationToMat
     , uniforms
     , vertexShader
@@ -84,14 +85,16 @@ cameraLootAk camera =
     Mat4.makeLookAt (orbitCamelaPosition camera) (vec3 0 0 0) (vec3 0 1 0)
 
 
+orbitCamelaRotation : OrbitCamela -> Mat4
+orbitCamelaRotation ( _, ca, cb ) =
+    Mat4.mul
+        (Mat4.makeRotate ca (vec3 0 1 0))
+        (Mat4.makeRotate cb (vec3 1 0 0))
+
+
 orbitCamelaPosition : OrbitCamela -> Vec3
 orbitCamelaPosition ( cr, ca, cb ) =
-    Mat4.transform
-        (Mat4.mul
-            (Mat4.makeRotate ca (vec3 0 1 0))
-            (Mat4.makeRotate cb (vec3 1 0 0))
-        )
-        (vec3 0 0 cr)
+    Mat4.transform (orbitCamelaRotation ( cr, ca, cb )) (vec3 0 0 cr)
 
 
 
