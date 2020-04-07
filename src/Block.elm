@@ -5,6 +5,7 @@ module Block exposing
     , meshCubeLine
     , meshDa
     , meshOka
+    , meshUnitLine
     )
 
 import Asset
@@ -38,6 +39,15 @@ mesh list =
         |> List.map (\( tri, color ) -> face color tri)
         |> List.concat
         |> WebGL.triangles
+
+
+meshUnitLine : Mesh Shader.Vertex
+meshUnitLine =
+    (Asset.unitLine
+        |> List.concat
+        |> List.map (\tri -> ( tri, Vec3.vec3 0 0 0 ))
+    )
+        |> mesh
 
 
 meshCube : Mesh Shader.Vertex

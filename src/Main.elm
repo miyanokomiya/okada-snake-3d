@@ -161,7 +161,7 @@ init _ =
 
 cameraRadius : Int -> Float
 cameraRadius level =
-    3 + toFloat (4 * level)
+    10 + toFloat (4 * level)
 
 
 initModel : Int -> Model
@@ -183,7 +183,7 @@ initModel level =
         { default = { oka = okadaMesh defaultColor Oka, da = okadaMesh defaultColor Da }
         , playerHead = { oka = okadaMesh playerHeadColor Oka, da = okadaMesh playerHeadColor Da }
         , playerBody = { oka = okadaMesh playerBodyColor Oka, da = okadaMesh playerBodyColor Da }
-        , line = Block.lineLoopMesh (vec3 180 180 180) [ vec3 0 0 0, vec3 0 1 0 ]
+        , line = Block.meshUnitLine
         , moveTargetBox = Block.meshCube
         , moveTargetBoxLine = Block.meshCubeLine
         }
