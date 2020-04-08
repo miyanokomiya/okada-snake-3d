@@ -1,7 +1,6 @@
 module Motion exposing
     ( GeoAnimation
     , PositionAnimation
-    , animateGeo
     , animatePosition
     , animateRotate
     , positionAnimation
@@ -12,6 +11,7 @@ module Motion exposing
     )
 
 import Animation exposing (Animation)
+import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Shader
 
@@ -89,17 +89,10 @@ staticPositionAnimation vec =
     }
 
 
-animatePosition : Float -> PositionAnimation -> Shader.Geo -> Shader.Geo
-animatePosition t animation geo =
+animatePosition : Float -> PositionAnimation -> Mat4
+animatePosition t animation =
     let
         next =
             vec3 (Animation.animate t animation.x) (Animation.animate t animation.y) (Animation.animate t animation.z)
     in
-    { geo | position = next }
-
-
-animateGeo : Float -> GeoAnimation -> Shader.Geo -> Shader.Geo
-animateGeo t anim current =
-    current
-        |> animateRotate t anim.rotation
-        |> animatePosition t anim.position
+    Mat4.makeTranslate next

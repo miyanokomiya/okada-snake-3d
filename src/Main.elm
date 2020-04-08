@@ -1,5 +1,6 @@
 module Main exposing (main)
 
+import Animation exposing (Animation)
 import Array
 import Asset
 import Block
@@ -15,6 +16,7 @@ import Html.Events.Extra.Wheel as Wheel
 import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Maybe.Extra
+import Motion
 import Pointer
 import Random
 import Random.Extra
@@ -101,6 +103,7 @@ type alias Model =
     , player : Player
     , camera : Shader.OrbitCamela
     , downTime : Float
+    , positionAnimation : Motion.PositionAnimation
     , drag : Draggable.State String
     , meshMap :
         { default : MeshSet
@@ -160,7 +163,7 @@ init _ =
 
 cameraRadius : Int -> Float
 cameraRadius level =
-    10 + toFloat (4 * level)
+    4 + toFloat (4 * level)
 
 
 initModel : Int -> Model
@@ -180,6 +183,7 @@ initModel level =
     , camera = setCameraToHead field player { radius = cameraRadius level, radianY = pi * 1.4, radianZ = -pi / 8, position = vec3 0 0 0 }
     , size = ( 400, 600 )
     , downTime = 0
+    , positionAnimation = Motion.staticPositionAnimation (vec3 0 0 0)
     , drag = Draggable.init
     , meshMap =
         { default = { oka = okadaMesh defaultColor Oka, da = okadaMesh defaultColor Da }
@@ -294,7 +298,11 @@ update msg model =
             ( moveModel moveTo model, Cmd.none )
 
         Zoom event ->
-            ( { model | camera = { camera | radius = camera.radius + (event.deltaY / 100) } }
+            let
+                radius =
+                    camera.radius - (event.deltaY / 100)
+            in
+            ( { model | camera = { camera | radius = max radius 4 } }
             , Cmd.none
             )
 
@@ -307,12 +315,25 @@ moveModel moveTo model =
 
         ( nextField, nextPlayer ) =
             moveAndEat moveTo model.field model.player
+
+        nextCamera =
+            setCameraToHead nextField nextPlayer camera
+
+        positionAnimation =
+            Motion.positionAnimation model.time
+                300
+                (Vec3.sub
+                    (Shader.orbitCamelaPosition nextCamera)
+                    (Shader.orbitCamelaPosition camera)
+                )
+                (vec3 0 0 0)
     in
     { model
         | downTime = 0
         , field = nextField
         , player = nextPlayer
-        , camera = setCameraToHead nextField nextPlayer camera
+        , camera = nextCamera
+        , positionAnimation = positionAnimation
     }
 
 
@@ -488,6 +509,9 @@ view model =
 
         perspective =
             getPerspective model.size
+
+        translateAnimation =
+            Motion.animatePosition model.time model.positionAnimation
     in
     { title = "岡田スネーク3D"
     , body =
@@ -529,11 +553,13 @@ view model =
                             model.camera
                             perspective
                             model.meshMap.default
+                            translateAnimation
                             model.field
                             ++ fieldLineEntities
                                 model.camera
                                 perspective
                                 model.meshMap.line
+                                translateAnimation
                                 model.field
                             ++ playerEntities
                                 model.camera
@@ -717,8 +743,8 @@ cellToBlock lineSize point cell =
             Nothing
 
 
-fieldLineEntities : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex -> Grid Cell -> List WebGL.Entity
-fieldLineEntities camera perspective mesh grid =
+fieldLineEntities : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex -> Mat4 -> Grid Cell -> List WebGL.Entity
+fieldLineEntities camera perspective mesh translation grid =
     let
         lineSize =
             Grid.length grid
@@ -748,6 +774,7 @@ fieldLineEntities camera perspective mesh grid =
                         perspective
                         mesh
                         (toFloat lineSize * cellSize)
+                        translation
                         { position =
                             Vec3.sub
                                 (pointToPosition lineSize ( 0, b, a ))
@@ -763,6 +790,7 @@ fieldLineEntities camera perspective mesh grid =
                         perspective
                         mesh
                         (toFloat lineSize * cellSize)
+                        translation
                         { position =
                             Vec3.sub
                                 (pointToPosition lineSize ( b, 0, a ))
@@ -778,6 +806,7 @@ fieldLineEntities camera perspective mesh grid =
                         perspective
                         mesh
                         (toFloat lineSize * cellSize)
+                        translation
                         { position =
                             Vec3.sub
                                 (pointToPosition lineSize ( a, b, 0 ))
@@ -789,8 +818,8 @@ fieldLineEntities camera perspective mesh grid =
     [ xlines, ylines, zlines ] |> List.concat
 
 
-fieldEntities : Shader.OrbitCamela -> Mat4 -> MeshSet -> Grid Cell -> List WebGL.Entity
-fieldEntities camera perspective set grid =
+fieldEntities : Shader.OrbitCamela -> Mat4 -> MeshSet -> Mat4 -> Grid Cell -> List WebGL.Entity
+fieldEntities camera perspective set translation grid =
     let
         lineSize =
             Grid.length grid
@@ -803,7 +832,7 @@ fieldEntities camera perspective set grid =
         |> Maybe.Extra.values
         |> List.map
             (\block ->
-                frontEntity camera perspective set 0.5 block
+                frontEntity camera perspective set 0.5 translation block
             )
 
 
@@ -870,8 +899,8 @@ entity camera perspective set scale block =
         (Shader.uniforms camera perspective p transfrom)
 
 
-frontEntity : Shader.OrbitCamela -> Mat4 -> MeshSet -> Float -> GeoBlock -> WebGL.Entity
-frontEntity camera perspective set scale block =
+frontEntity : Shader.OrbitCamela -> Mat4 -> MeshSet -> Float -> Mat4 -> GeoBlock -> WebGL.Entity
+frontEntity camera perspective set scale translation block =
     let
         p =
             block.geo.position
@@ -880,6 +909,7 @@ frontEntity camera perspective set scale block =
             Mat4.makeScale3 scale scale scale
                 |> Mat4.mul (Shader.orbitCamelaRotation camera)
                 |> Mat4.mul (Mat4.makeTranslate (Vec3.negate camera.position))
+                |> Mat4.mul translation
     in
     WebGL.entity
         Shader.vertexShader
@@ -888,8 +918,8 @@ frontEntity camera perspective set scale block =
         (Shader.uniforms camera perspective p transfrom)
 
 
-lineEntity : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex -> Float -> Shader.Geo -> WebGL.Entity
-lineEntity camera perspective mesh size geo =
+lineEntity : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex -> Float -> Mat4 -> Shader.Geo -> WebGL.Entity
+lineEntity camera perspective mesh size translation geo =
     let
         p =
             geo.position
@@ -900,6 +930,7 @@ lineEntity camera perspective mesh size geo =
         transform =
             Mat4.makeScale3 size size size
                 |> Mat4.mul (Shader.rotationToMat r)
+                |> Mat4.mul translation
     in
     WebGL.entity
         Shader.vertexShader
