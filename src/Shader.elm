@@ -50,10 +50,15 @@ Parameters:
   - radius - radius from origin
   - radianY - radian by axis Y
   - radianZ - radian by axis Z
+  - position - look to
 
 -}
 type alias OrbitCamela =
-    ( Float, Float, Float )
+    { radius : Float
+    , radianY : Float
+    , radianZ : Float
+    , position : Vec3
+    }
 
 
 type alias Uniforms =
@@ -82,19 +87,21 @@ uniforms camera perspective position rotation =
 
 cameraLootAk : OrbitCamela -> Mat4
 cameraLootAk camera =
-    Mat4.makeLookAt (orbitCamelaPosition camera) (vec3 0 0 0) (vec3 0 1 0)
+    Mat4.makeLookAt (orbitCamelaPosition camera) camera.position (vec3 0 1 0)
 
 
 orbitCamelaRotation : OrbitCamela -> Mat4
-orbitCamelaRotation ( _, ca, cb ) =
-    Mat4.mul
-        (Mat4.makeRotate ca (vec3 0 1 0))
-        (Mat4.makeRotate cb (vec3 1 0 0))
+orbitCamelaRotation camera =
+    Mat4.makeRotate camera.radianZ (vec3 1 0 0)
+        |> Mat4.mul
+            (Mat4.makeRotate camera.radianY (vec3 0 1 0))
+        |> Mat4.mul
+            (Mat4.makeTranslate camera.position)
 
 
 orbitCamelaPosition : OrbitCamela -> Vec3
-orbitCamelaPosition ( cr, ca, cb ) =
-    Mat4.transform (orbitCamelaRotation ( cr, ca, cb )) (vec3 0 0 cr)
+orbitCamelaPosition camera =
+    Mat4.transform (orbitCamelaRotation camera) (vec3 0 0 camera.radius)
 
 
 

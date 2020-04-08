@@ -26,7 +26,6 @@ import WebGL exposing (Mesh)
 type Okada
     = Oka
     | Da
-    | Box
 
 
 type alias GeoBlock =
@@ -166,16 +165,19 @@ cameraRadius level =
 
 initModel : Int -> Model
 initModel level =
+    let
+        field =
+            initField
+
+        player =
+            { head = { point = ( 0, 1, 0 ), rotation = { radian = 0, axis = vec3 0 1 0 }, turning = { radian = 0, axis = vec3 0 1 0 } }
+            , body = []
+            }
+    in
     { time = 0
-    , field = initField
-    , player =
-        { head = { point = ( 0, 2, 0 ), rotation = { radian = 0, axis = vec3 0 1 0 }, turning = { radian = 0, axis = vec3 0 1 0 } }
-        , body =
-            [ { point = ( 0, 1, 0 ), rotation = { radian = 0, axis = vec3 0 1 0 }, turning = { radian = 0, axis = vec3 0 1 0 } }
-            , { point = ( 0, 0, 0 ), rotation = { radian = 0, axis = vec3 0 1 0 }, turning = { radian = 0, axis = vec3 0 1 0 } }
-            ]
-        }
-    , camera = ( cameraRadius level, pi / 8, pi / 16 )
+    , field = field
+    , player = player
+    , camera = setCameraToHead field player { radius = cameraRadius level, radianY = pi * 1.4, radianZ = -pi / 8, position = vec3 0 0 0 }
     , size = ( 400, 600 )
     , downTime = 0
     , drag = Draggable.init
@@ -211,7 +213,7 @@ update msg model =
         ( width, height ) =
             model.size
 
-        ( cr, ca, cb ) =
+        camera =
             model.camera
     in
     case msg of
@@ -258,7 +260,7 @@ update msg model =
 
         OnDragBy ( dx, dy ) ->
             ( { model
-                | camera = ( cr, ca - dx / 30, limitRadian (cb - dy / 30) )
+                | camera = { camera | radianY = camera.radianY - dx / 30, radianZ = limitRadian (camera.radianZ - dy / 30) }
                 , downTime = model.downTime + 1
               }
             , Cmd.none
@@ -273,39 +275,50 @@ update msg model =
                     maybeMoveTo =
                         getClickedMoveTo model ( (x * 2) / toFloat width - 1, 1 - y / toFloat height * 2 )
 
-                    ( nextField, nextPlayer ) =
+                    nextModel =
                         case maybeMoveTo of
                             Just moveTo ->
-                                moveAndEat moveTo model.field model.player
+                                moveModel moveTo model
 
                             Nothing ->
-                                ( model.field, model.player )
+                                model
                 in
-                ( { model | downTime = 0, field = nextField, player = nextPlayer }, Cmd.none )
+                ( { nextModel | downTime = 0 }
+                , Cmd.none
+                )
 
             else
                 ( { model | downTime = 0 }, Cmd.none )
 
         Move moveTo ->
-            let
-                ( nextField, nextPlayer ) =
-                    moveAndEat moveTo model.field model.player
-            in
-            ( { model
-                | field = nextField
-                , player = nextPlayer
-              }
+            ( moveModel moveTo model, Cmd.none )
+
+        Zoom event ->
+            ( { model | camera = { camera | radius = camera.radius + (event.deltaY / 100) } }
             , Cmd.none
             )
 
-        Zoom event ->
-            let
-                ( a, b, c ) =
-                    model.camera
-            in
-            ( { model | camera = ( a + (event.deltaY / 100), b, c ) }
-            , Cmd.none
-            )
+
+moveModel : MoveTo -> Model -> Model
+moveModel moveTo model =
+    let
+        camera =
+            model.camera
+
+        ( nextField, nextPlayer ) =
+            moveAndEat moveTo model.field model.player
+    in
+    { model
+        | downTime = 0
+        , field = nextField
+        , player = nextPlayer
+        , camera = setCameraToHead nextField nextPlayer camera
+    }
+
+
+setCameraToHead : Grid Cell -> Player -> Shader.OrbitCamela -> Shader.OrbitCamela
+setCameraToHead field player camera =
+    { camera | position = pointToPosition (Grid.length field) player.head.point }
 
 
 tailOkada : Player -> Okada
@@ -323,7 +336,7 @@ moveAndEat moveTo field player =
         movedPlayer =
             move moveTo player
     in
-    if validMove field movedPlayer then
+    if validMove field player movedPlayer then
         let
             maybeCell =
                 Grid.get movedPlayer.head.point field
@@ -346,8 +359,8 @@ moveAndEat moveTo field player =
         ( field, player )
 
 
-validMove : Grid Cell -> Player -> Bool
-validMove field player =
+validMove : Grid Cell -> Player -> Player -> Bool
+validMove field before after =
     let
         min =
             0
@@ -356,24 +369,24 @@ validMove field player =
             Grid.length field - 1
 
         ( x, y, z ) =
-            player.head.point
+            after.head.point
 
         isInGrid a =
             min <= a && a <= max
 
         bodyPoints =
-            List.map (\c -> c.point) player.body
+            List.map (\c -> c.point) before.body
 
         maybeCell =
-            Grid.get player.head.point field
+            Grid.get after.head.point field
 
         tail =
-            tailOkada player
+            tailOkada before
     in
     isInGrid x
         && isInGrid y
         && isInGrid z
-        && (List.member player.head.point bodyPoints == False)
+        && (List.member after.head.point bodyPoints == False)
         && (case maybeCell of
                 Just cell ->
                     case cell of
@@ -659,7 +672,7 @@ moveTargetBoxBlock field player ( moveTo, geo ) =
         position =
             pointToPosition (Grid.length field) next.head.point
     in
-    if validMove field next then
+    if validMove field player next then
         Just
             ( moveTo
             , { position = Vec3.add position geo.position
@@ -846,7 +859,9 @@ entity camera perspective set scale block =
             block.geo.rotation
 
         transfrom =
-            Mat4.mul (Mat4.mul (Shader.rotationToMat r) (Shader.rotationToMat block.turning)) (Mat4.makeScale3 scale scale scale)
+            Mat4.makeScale3 scale scale scale
+                |> Mat4.mul (Shader.rotationToMat block.turning)
+                |> Mat4.mul (Shader.rotationToMat r)
     in
     WebGL.entity
         Shader.vertexShader
@@ -862,7 +877,9 @@ frontEntity camera perspective set scale block =
             block.geo.position
 
         transfrom =
-            Mat4.mul (Shader.orbitCamelaRotation camera) (Mat4.makeScale3 scale scale scale)
+            Mat4.makeScale3 scale scale scale
+                |> Mat4.mul (Shader.orbitCamelaRotation camera)
+                |> Mat4.mul (Mat4.makeTranslate (Vec3.negate camera.position))
     in
     WebGL.entity
         Shader.vertexShader
@@ -879,6 +896,10 @@ lineEntity camera perspective mesh size geo =
 
         r =
             geo.rotation
+
+        transform =
+            Mat4.makeScale3 size size size
+                |> Mat4.mul (Shader.rotationToMat r)
     in
     WebGL.entity
         Shader.vertexShader
@@ -887,7 +908,7 @@ lineEntity camera perspective mesh size geo =
         (Shader.uniforms camera
             perspective
             p
-            (Mat4.mul (Shader.rotationToMat r) (Mat4.makeScale3 size size size))
+            transform
         )
 
 
