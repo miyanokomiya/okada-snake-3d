@@ -1,6 +1,6 @@
 module Main exposing (main)
 
-import Animation exposing (Animation)
+import Animation
 import Array
 import Asset
 import Block
@@ -18,8 +18,6 @@ import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Maybe.Extra
 import Motion
 import Pointer
-import Random
-import Random.Extra
 import Round
 import Shader
 import WebGL exposing (Mesh)
@@ -323,8 +321,8 @@ moveModel moveTo model =
             Motion.positionAnimation model.time
                 300
                 (Vec3.sub
-                    (Shader.orbitCamelaPosition nextCamera)
                     (Shader.orbitCamelaPosition camera)
+                    (Shader.orbitCamelaPosition nextCamera)
                 )
                 (vec3 0 0 0)
     in
@@ -512,6 +510,17 @@ view model =
 
         translateAnimation =
             Motion.animatePosition model.time model.positionAnimation
+
+        camera =
+            model.camera
+
+        animatedCamera =
+            { camera
+                | position = Mat4.transform translateAnimation camera.position
+            }
+
+        gameOver =
+            isGameOver model
     in
     { title = "岡田スネーク3D"
     , body =
@@ -530,51 +539,75 @@ view model =
                     , style "background-color" "#333"
                     , style "color" "#fff"
                     ]
-                    [ Html.span [] [ Html.text (timeText model.time) ]
+                    [ Html.span [] [ Html.text ("Lv. " ++ String.fromInt (currentLevel model)) ]
+                    , Html.div
+                        [ style "display" "flex"
+                        , style "align-items" "center"
+                        ]
+                        [ Html.span
+                            [ Html.Attributes.style "min-width" "40px"
+                            , Html.Attributes.style "text-align" "right"
+                            ]
+                            [ Html.text (String.fromInt (score model)) ]
+                        , Html.span
+                            [ Html.Attributes.style "margin" "0 0.4rem"
+                            ]
+                            [ Html.text "/" ]
+                        , Html.span [] [ Html.text (String.fromInt (nextExpandAfter model)) ]
+                        ]
                     ]
                 , Html.div
-                    [ width w
-                    , height h
+                    [ style "width" (String.fromInt w ++ "px")
+                    , style "height" (String.fromInt h ++ "px")
+                    , style "position" "relative"
+                    , style "border" "1px solid black"
+                    , style "box-sizing" "border-box"
+                    , style "overflow" "hidden"
                     , Mouse.onClick (.offsetPos >> ClickMsg)
                     , Pointer.onTouchEndWithPosition ClickMsg
                     , Wheel.onWheel Zoom
                     ]
-                    [ WebGL.toHtml
+                    (WebGL.toHtml
                         ([ width w
                          , height h
                          , style "display" "block"
                          , style "background-color" "#eee"
-                         , style "border" "1px solid black"
                          , Draggable.mouseTrigger "my-element" DragMsg
                          ]
                             ++ Draggable.touchTriggers "my-element" DragMsg
                         )
                         (fieldEntities
-                            model.camera
+                            animatedCamera
                             perspective
                             model.meshMap.default
-                            translateAnimation
                             model.field
                             ++ fieldLineEntities
-                                model.camera
+                                animatedCamera
                                 perspective
                                 model.meshMap.line
-                                translateAnimation
                                 model.field
                             ++ playerEntities
-                                model.camera
+                                animatedCamera
                                 perspective
                                 ( model.meshMap.playerHead, model.meshMap.playerBody )
                                 (Array.length model.field)
+                                translateAnimation
                                 model.player
                             ++ moveTargetBoxBlockEntities
-                                model.camera
+                                animatedCamera
                                 perspective
                                 ( model.meshMap.moveTargetBox, model.meshMap.moveTargetBoxLine )
+                                translateAnimation
                                 model.field
                                 model.player
                         )
-                    ]
+                        :: (if gameOver then
+                                [ viewGameOver ]
+
+                            else
+                                []
+                           )
+                    )
                 , Html.div
                     [ Html.Attributes.style "display" "flex"
                     , Html.Attributes.style "justify-content" "space-between"
@@ -586,47 +619,32 @@ view model =
                             ]
                             [ Html.text "RESET" ]
                         ]
-                    , Html.div
-                        [ Html.Attributes.style "display" "flex"
-                        , Html.Attributes.style "align-items" "center"
-                        ]
-                        [ Html.span
-                            [ Html.Attributes.style "min-width" "40px"
-                            , Html.Attributes.style "text-align" "right"
+                    , Html.div []
+                        [ button
+                            [ Html.Events.onClick (Move Xplus)
                             ]
-                            [ Html.text "??" ]
-                        , Html.span
-                            [ Html.Attributes.style "margin" "0 0.4rem"
+                            [ Html.text "X+" ]
+                        , button
+                            [ Html.Events.onClick (Move Xminus)
                             ]
-                            [ Html.text "/" ]
-                        , Html.span [] [ Html.text "??" ]
+                            [ Html.text "X-" ]
+                        , button
+                            [ Html.Events.onClick (Move Yplus)
+                            ]
+                            [ Html.text "Y+" ]
+                        , button
+                            [ Html.Events.onClick (Move Yminus)
+                            ]
+                            [ Html.text "Y-" ]
+                        , button
+                            [ Html.Events.onClick (Move Zplus)
+                            ]
+                            [ Html.text "Z+" ]
+                        , button
+                            [ Html.Events.onClick (Move Zminus)
+                            ]
+                            [ Html.text "Z-" ]
                         ]
-                    ]
-                , Html.div []
-                    [ button
-                        [ Html.Events.onClick (Move Xplus)
-                        ]
-                        [ Html.text "X+" ]
-                    , button
-                        [ Html.Events.onClick (Move Xminus)
-                        ]
-                        [ Html.text "X-" ]
-                    , button
-                        [ Html.Events.onClick (Move Yplus)
-                        ]
-                        [ Html.text "Y+" ]
-                    , button
-                        [ Html.Events.onClick (Move Yminus)
-                        ]
-                        [ Html.text "Y-" ]
-                    , button
-                        [ Html.Events.onClick (Move Zplus)
-                        ]
-                        [ Html.text "Z+" ]
-                    , button
-                        [ Html.Events.onClick (Move Zminus)
-                        ]
-                        [ Html.text "Z-" ]
                     ]
                 , Html.div
                     [ style "text-align" "center"
@@ -659,16 +677,20 @@ moveTargetBoxBlockEntities :
     Shader.OrbitCamela
     -> Mat4
     -> ( Mesh Shader.Vertex, Mesh Shader.Vertex )
+    -> Mat4
     -> Grid Cell
     -> Player
     -> List WebGL.Entity
-moveTargetBoxBlockEntities camera perspective ( mesh, linesMesh ) field player =
+moveTargetBoxBlockEntities camera perspective ( mesh, linesMesh ) translation field player =
     moveTargetBoxBlockList field player
         |> List.map
             (\( _, geo ) ->
                 let
                     uni =
-                        Shader.uniforms camera perspective geo.position (Shader.rotationToMat geo.rotation)
+                        Shader.uniforms camera
+                            perspective
+                            (Mat4.transform translation geo.position)
+                            (Shader.rotationToMat geo.rotation)
                 in
                 [ WebGL.entity Shader.vertexShader Shader.fragmentShader mesh uni
                 , WebGL.entity Shader.vertexShader Shader.fragmentShader linesMesh uni
@@ -743,8 +765,8 @@ cellToBlock lineSize point cell =
             Nothing
 
 
-fieldLineEntities : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex -> Mat4 -> Grid Cell -> List WebGL.Entity
-fieldLineEntities camera perspective mesh translation grid =
+fieldLineEntities : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex -> Grid Cell -> List WebGL.Entity
+fieldLineEntities camera perspective mesh grid =
     let
         lineSize =
             Grid.length grid
@@ -774,7 +796,6 @@ fieldLineEntities camera perspective mesh translation grid =
                         perspective
                         mesh
                         (toFloat lineSize * cellSize)
-                        translation
                         { position =
                             Vec3.sub
                                 (pointToPosition lineSize ( 0, b, a ))
@@ -790,7 +811,6 @@ fieldLineEntities camera perspective mesh translation grid =
                         perspective
                         mesh
                         (toFloat lineSize * cellSize)
-                        translation
                         { position =
                             Vec3.sub
                                 (pointToPosition lineSize ( b, 0, a ))
@@ -806,7 +826,6 @@ fieldLineEntities camera perspective mesh translation grid =
                         perspective
                         mesh
                         (toFloat lineSize * cellSize)
-                        translation
                         { position =
                             Vec3.sub
                                 (pointToPosition lineSize ( a, b, 0 ))
@@ -818,8 +837,8 @@ fieldLineEntities camera perspective mesh translation grid =
     [ xlines, ylines, zlines ] |> List.concat
 
 
-fieldEntities : Shader.OrbitCamela -> Mat4 -> MeshSet -> Mat4 -> Grid Cell -> List WebGL.Entity
-fieldEntities camera perspective set translation grid =
+fieldEntities : Shader.OrbitCamela -> Mat4 -> MeshSet -> Grid Cell -> List WebGL.Entity
+fieldEntities camera perspective set grid =
     let
         lineSize =
             Grid.length grid
@@ -832,12 +851,12 @@ fieldEntities camera perspective set translation grid =
         |> Maybe.Extra.values
         |> List.map
             (\block ->
-                frontEntity camera perspective set 0.5 translation block
+                frontEntity camera perspective set 0.5 block
             )
 
 
-playerCellToBlock : Int -> Okada -> PlayerCell -> GeoBlock
-playerCellToBlock fieldSize okada pcell =
+playerCellToBlock : Int -> Mat4 -> Okada -> PlayerCell -> GeoBlock
+playerCellToBlock fieldSize translation okada pcell =
     let
         point =
             pcell.point
@@ -850,14 +869,17 @@ playerCellToBlock fieldSize okada pcell =
     in
     { id = String.fromInt x ++ "," ++ String.fromInt y ++ "," ++ String.fromInt z
     , okada = okada
-    , geo = { position = position, rotation = pcell.rotation }
+    , geo =
+        { position = Mat4.transform translation position
+        , rotation = pcell.rotation
+        }
     , turning = pcell.turning
     }
 
 
-playerEntities : Shader.OrbitCamela -> Mat4 -> ( MeshSet, MeshSet ) -> Int -> Player -> List WebGL.Entity
-playerEntities camera perspective ( headSet, bodySet ) fieldSize player =
-    entity camera perspective headSet 1 (playerCellToBlock fieldSize Oka player.head)
+playerEntities : Shader.OrbitCamela -> Mat4 -> ( MeshSet, MeshSet ) -> Int -> Mat4 -> Player -> List WebGL.Entity
+playerEntities camera perspective ( headSet, bodySet ) fieldSize translation player =
+    entity camera perspective headSet 1 (playerCellToBlock fieldSize translation Oka player.head)
         :: (player.body
                 |> List.indexedMap
                     (\i pcell ->
@@ -866,6 +888,7 @@ playerEntities camera perspective ( headSet, bodySet ) fieldSize player =
                             bodySet
                             0.8
                             (playerCellToBlock fieldSize
+                                translation
                                 (if modBy 2 i == 1 then
                                     Oka
 
@@ -899,8 +922,8 @@ entity camera perspective set scale block =
         (Shader.uniforms camera perspective p transfrom)
 
 
-frontEntity : Shader.OrbitCamela -> Mat4 -> MeshSet -> Float -> Mat4 -> GeoBlock -> WebGL.Entity
-frontEntity camera perspective set scale translation block =
+frontEntity : Shader.OrbitCamela -> Mat4 -> MeshSet -> Float -> GeoBlock -> WebGL.Entity
+frontEntity camera perspective set scale block =
     let
         p =
             block.geo.position
@@ -909,7 +932,6 @@ frontEntity camera perspective set scale translation block =
             Mat4.makeScale3 scale scale scale
                 |> Mat4.mul (Shader.orbitCamelaRotation camera)
                 |> Mat4.mul (Mat4.makeTranslate (Vec3.negate camera.position))
-                |> Mat4.mul translation
     in
     WebGL.entity
         Shader.vertexShader
@@ -918,8 +940,8 @@ frontEntity camera perspective set scale translation block =
         (Shader.uniforms camera perspective p transfrom)
 
 
-lineEntity : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex -> Float -> Mat4 -> Shader.Geo -> WebGL.Entity
-lineEntity camera perspective mesh size translation geo =
+lineEntity : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex -> Float -> Shader.Geo -> WebGL.Entity
+lineEntity camera perspective mesh size geo =
     let
         p =
             geo.position
@@ -930,7 +952,6 @@ lineEntity camera perspective mesh size translation geo =
         transform =
             Mat4.makeScale3 size size size
                 |> Mat4.mul (Shader.rotationToMat r)
-                |> Mat4.mul translation
     in
     WebGL.entity
         Shader.vertexShader
@@ -969,3 +990,43 @@ button attrs children =
             ++ attrs
         )
         children
+
+
+isGameOver : Model -> Bool
+isGameOver model =
+    List.length (moveTargetBoxBlockList model.field model.player) == 0
+
+
+score : Model -> Int
+score model =
+    List.length model.player.body + 1
+
+
+nextExpandAfter : Model -> Int
+nextExpandAfter model =
+    let
+        size =
+            Grid.length model.field
+    in
+    size * (size - 1)
+
+
+currentLevel : Model -> Int
+currentLevel model =
+    round (toFloat (Grid.length model.field - 3) / 2)
+
+
+viewGameOver : Html Msg
+viewGameOver =
+    Html.div
+        [ style "position" "absolute"
+        , style "top" "50%"
+        , style "left" "50%"
+        , style "transform" "translate(-50%, -50%)"
+        , style "font-size" "3rem"
+        , style "font-weight" "600"
+        , style "color" "red"
+        , style "white-space" "nowrap"
+        , style "pointer-events" "none"
+        ]
+        [ Html.text "Game Over" ]
