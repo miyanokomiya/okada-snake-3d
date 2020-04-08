@@ -1,6 +1,5 @@
 module Main exposing (main)
 
-import Animation exposing (Animation)
 import Array
 import Asset
 import Block
@@ -12,10 +11,10 @@ import Html exposing (Html)
 import Html.Attributes exposing (height, style, width)
 import Html.Events
 import Html.Events.Extra.Mouse as Mouse
+import Html.Events.Extra.Wheel as Wheel
 import Math.Matrix4 as Mat4 exposing (Mat4)
 import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Maybe.Extra
-import Motion
 import Pointer
 import Random
 import Random.Extra
@@ -131,6 +130,7 @@ type Msg
     | DragMsg (Draggable.Msg String)
     | Move MoveTo
     | ClickMsg ( Float, Float )
+    | Zoom Wheel.Event
 
 
 dragConfig : Draggable.Config String Msg
@@ -295,6 +295,15 @@ update msg model =
                 | field = nextField
                 , player = nextPlayer
               }
+            , Cmd.none
+            )
+
+        Zoom event ->
+            let
+                ( a, b, c ) =
+                    model.camera
+            in
+            ( { model | camera = ( a + (event.deltaY / 100), b, c ) }
             , Cmd.none
             )
 
@@ -491,6 +500,7 @@ view model =
                     , height h
                     , Mouse.onClick (.offsetPos >> ClickMsg)
                     , Pointer.onTouchEndWithPosition ClickMsg
+                    , Wheel.onWheel Zoom
                     ]
                     [ WebGL.toHtml
                         ([ width w
