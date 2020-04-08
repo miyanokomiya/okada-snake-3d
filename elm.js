@@ -784,11 +784,11 @@ function _Debug_crash_UNUSED(identifier, fact1, fact2, fact3, fact4)
 
 function _Debug_regionToString(region)
 {
-	if (region.aJ.aY === region.aR.aY)
+	if (region.aP.a2 === region.aX.a2)
 	{
-		return 'on line ' + region.aJ.aY;
+		return 'on line ' + region.aP.a2;
 	}
-	return 'on lines ' + region.aJ.aY + ' through ' + region.aR.aY;
+	return 'on lines ' + region.aP.a2 + ' through ' + region.aX.a2;
 }
 
 
@@ -1857,9 +1857,9 @@ var _Platform_worker = F4(function(impl, flagDecoder, debugMetadata, args)
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.bP,
-		impl.cy,
-		impl.cs,
+		impl.bT,
+		impl.cC,
+		impl.cw,
 		function() { return function() {} }
 	);
 });
@@ -2704,9 +2704,9 @@ var _VirtualDom_mapEventTuple = F2(function(func, tuple)
 var _VirtualDom_mapEventRecord = F2(function(func, record)
 {
 	return {
-		b6: func(record.b6),
-		cr: record.cr,
-		cn: record.cn
+		ca: func(record.ca),
+		cv: record.cv,
+		cr: record.cr
 	}
 });
 
@@ -2974,11 +2974,11 @@ function _VirtualDom_makeCallback(eventNode, initialHandler)
 		// 3 = Custom
 
 		var value = result.a;
-		var message = !tag ? value : tag < 3 ? value.a : value.b6;
-		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.cr;
+		var message = !tag ? value : tag < 3 ? value.a : value.ca;
+		var stopPropagation = tag == 1 ? value.b : tag == 3 && value.cv;
 		var currentEventNode = (
 			stopPropagation && event.stopPropagation(),
-			(tag == 2 ? value.b : tag == 3 && value.cn) && event.preventDefault(),
+			(tag == 2 ? value.b : tag == 3 && value.cr) && event.preventDefault(),
 			eventNode
 		);
 		var tagger;
@@ -3928,11 +3928,11 @@ var _Browser_element = _Debugger_element || F4(function(impl, flagDecoder, debug
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.bP,
-		impl.cy,
-		impl.cs,
+		impl.bT,
+		impl.cC,
+		impl.cw,
 		function(sendToApp, initialModel) {
-			var view = impl.cz;
+			var view = impl.cD;
 			/**/
 			var domNode = args['node'];
 			//*/
@@ -3964,12 +3964,12 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 	return _Platform_initialize(
 		flagDecoder,
 		args,
-		impl.bP,
-		impl.cy,
-		impl.cs,
+		impl.bT,
+		impl.cC,
+		impl.cw,
 		function(sendToApp, initialModel) {
-			var divertHrefToApp = impl.aI && impl.aI(sendToApp)
-			var view = impl.cz;
+			var divertHrefToApp = impl.aO && impl.aO(sendToApp)
+			var view = impl.cD;
 			var title = _VirtualDom_doc.title;
 			var bodyNode = _VirtualDom_doc.body;
 			var currNode = _VirtualDom_virtualize(bodyNode);
@@ -3977,12 +3977,12 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 			{
 				_VirtualDom_divertHrefToApp = divertHrefToApp;
 				var doc = view(model);
-				var nextNode = _VirtualDom_node('body')(_List_Nil)(doc.o);
+				var nextNode = _VirtualDom_node('body')(_List_Nil)(doc.n);
 				var patches = _VirtualDom_diff(currNode, nextNode);
 				bodyNode = _VirtualDom_applyPatches(bodyNode, currNode, patches, sendToApp);
 				currNode = nextNode;
 				_VirtualDom_divertHrefToApp = 0;
-				(title !== doc.cw) && (_VirtualDom_doc.title = title = doc.cw);
+				(title !== doc.cA) && (_VirtualDom_doc.title = title = doc.cA);
 			});
 		}
 	);
@@ -4038,12 +4038,12 @@ function _Browser_makeAnimator(model, draw)
 
 function _Browser_application(impl)
 {
-	var onUrlChange = impl.cf;
-	var onUrlRequest = impl.cg;
+	var onUrlChange = impl.cj;
+	var onUrlRequest = impl.ck;
 	var key = function() { key.a(onUrlChange(_Browser_getUrl())); };
 
 	return _Browser_document({
-		aI: function(sendToApp)
+		aO: function(sendToApp)
 		{
 			key.a = sendToApp;
 			_Browser_window.addEventListener('popstate', key);
@@ -4059,9 +4059,9 @@ function _Browser_application(impl)
 					var next = $elm$url$Url$fromString(href).a;
 					sendToApp(onUrlRequest(
 						(next
-							&& curr.bf === next.bf
-							&& curr.aV === next.aV
-							&& curr.bc.a === next.bc.a
+							&& curr.bl === next.bl
+							&& curr.a$ === next.a$
+							&& curr.bi.a === next.bi.a
 						)
 							? $elm$browser$Browser$Internal(next)
 							: $elm$browser$Browser$External(href)
@@ -4069,13 +4069,13 @@ function _Browser_application(impl)
 				}
 			});
 		},
-		bP: function(flags)
+		bT: function(flags)
 		{
-			return A3(impl.bP, flags, _Browser_getUrl(), key);
+			return A3(impl.bT, flags, _Browser_getUrl(), key);
 		},
-		cz: impl.cz,
-		cy: impl.cy,
-		cs: impl.cs
+		cD: impl.cD,
+		cC: impl.cC,
+		cw: impl.cw
 	});
 }
 
@@ -4141,17 +4141,17 @@ var _Browser_decodeEvent = F2(function(decoder, event)
 function _Browser_visibilityInfo()
 {
 	return (typeof _VirtualDom_doc.hidden !== 'undefined')
-		? { bM: 'hidden', by: 'visibilitychange' }
+		? { bQ: 'hidden', bC: 'visibilitychange' }
 		:
 	(typeof _VirtualDom_doc.mozHidden !== 'undefined')
-		? { bM: 'mozHidden', by: 'mozvisibilitychange' }
+		? { bQ: 'mozHidden', bC: 'mozvisibilitychange' }
 		:
 	(typeof _VirtualDom_doc.msHidden !== 'undefined')
-		? { bM: 'msHidden', by: 'msvisibilitychange' }
+		? { bQ: 'msHidden', bC: 'msvisibilitychange' }
 		:
 	(typeof _VirtualDom_doc.webkitHidden !== 'undefined')
-		? { bM: 'webkitHidden', by: 'webkitvisibilitychange' }
-		: { bM: 'hidden', by: 'visibilitychange' };
+		? { bQ: 'webkitHidden', bC: 'webkitvisibilitychange' }
+		: { bQ: 'hidden', bC: 'visibilitychange' };
 }
 
 
@@ -4232,12 +4232,12 @@ var _Browser_call = F2(function(functionName, id)
 function _Browser_getViewport()
 {
 	return {
-		bj: _Browser_getScene(),
-		bp: {
-			bs: _Browser_window.pageXOffset,
-			bt: _Browser_window.pageYOffset,
-			br: _Browser_doc.documentElement.clientWidth,
-			aU: _Browser_doc.documentElement.clientHeight
+		bp: _Browser_getScene(),
+		bv: {
+			aB: _Browser_window.pageXOffset,
+			aC: _Browser_window.pageYOffset,
+			bx: _Browser_doc.documentElement.clientWidth,
+			a_: _Browser_doc.documentElement.clientHeight
 		}
 	};
 }
@@ -4247,8 +4247,8 @@ function _Browser_getScene()
 	var body = _Browser_doc.body;
 	var elem = _Browser_doc.documentElement;
 	return {
-		br: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
-		aU: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
+		bx: Math.max(body.scrollWidth, body.offsetWidth, elem.scrollWidth, elem.offsetWidth, elem.clientWidth),
+		a_: Math.max(body.scrollHeight, body.offsetHeight, elem.scrollHeight, elem.offsetHeight, elem.clientHeight)
 	};
 }
 
@@ -4271,15 +4271,15 @@ function _Browser_getViewportOf(id)
 	return _Browser_withNode(id, function(node)
 	{
 		return {
-			bj: {
-				br: node.scrollWidth,
-				aU: node.scrollHeight
-			},
 			bp: {
-				bs: node.scrollLeft,
-				bt: node.scrollTop,
-				br: node.clientWidth,
-				aU: node.clientHeight
+				bx: node.scrollWidth,
+				a_: node.scrollHeight
+			},
+			bv: {
+				aB: node.scrollLeft,
+				aC: node.scrollTop,
+				bx: node.clientWidth,
+				a_: node.clientHeight
 			}
 		};
 	});
@@ -4309,18 +4309,18 @@ function _Browser_getElement(id)
 		var x = _Browser_window.pageXOffset;
 		var y = _Browser_window.pageYOffset;
 		return {
-			bj: _Browser_getScene(),
-			bp: {
-				bs: x,
-				bt: y,
-				br: _Browser_doc.documentElement.clientWidth,
-				aU: _Browser_doc.documentElement.clientHeight
+			bp: _Browser_getScene(),
+			bv: {
+				aB: x,
+				aC: y,
+				bx: _Browser_doc.documentElement.clientWidth,
+				a_: _Browser_doc.documentElement.clientHeight
 			},
-			bJ: {
-				bs: x + rect.left,
-				bt: y + rect.top,
-				br: rect.width,
-				aU: rect.height
+			bN: {
+				aB: x + rect.left,
+				aC: y + rect.top,
+				bx: rect.width,
+				a_: rect.height
 			}
 		};
 	});
@@ -4408,11 +4408,11 @@ var _MJS_v2setY = F2(function(y, a) {
 });
 
 var _MJS_v2toRecord = function(a) {
-    return { bs: a[0], bt: a[1] };
+    return { aB: a[0], aC: a[1] };
 };
 
 var _MJS_v2fromRecord = function(r) {
-    return new Float64Array([r.bs, r.bt]);
+    return new Float64Array([r.aB, r.aC]);
 };
 
 var _MJS_v2add = F2(function(a, b) {
@@ -4521,11 +4521,11 @@ var _MJS_v3setZ = F2(function(z, a) {
 });
 
 var _MJS_v3toRecord = function(a) {
-    return { bs: a[0], bt: a[1], aA: a[2] };
+    return { aB: a[0], aC: a[1], aD: a[2] };
 };
 
 var _MJS_v3fromRecord = function(r) {
-    return new Float64Array([r.bs, r.bt, r.aA]);
+    return new Float64Array([r.aB, r.aC, r.aD]);
 };
 
 var _MJS_v3add = F2(function(a, b) {
@@ -4681,11 +4681,11 @@ var _MJS_v4setW = F2(function(w, a) {
 });
 
 var _MJS_v4toRecord = function(a) {
-    return { bs: a[0], bt: a[1], aA: a[2], bq: a[3] };
+    return { aB: a[0], aC: a[1], aD: a[2], bw: a[3] };
 };
 
 var _MJS_v4fromRecord = function(r) {
-    return new Float64Array([r.bs, r.bt, r.aA, r.bq]);
+    return new Float64Array([r.aB, r.aC, r.aD, r.bw]);
 };
 
 var _MJS_v4add = F2(function(a, b) {
@@ -4791,31 +4791,31 @@ var _MJS_m4x4identity = new Float64Array([
 
 var _MJS_m4x4fromRecord = function(r) {
     var m = new Float64Array(16);
-    m[0] = r.bS;
-    m[1] = r.bW;
-    m[2] = r.b_;
-    m[3] = r.b2;
-    m[4] = r.bT;
-    m[5] = r.bX;
-    m[6] = r.b$;
-    m[7] = r.b3;
-    m[8] = r.bU;
-    m[9] = r.bY;
-    m[10] = r.b0;
-    m[11] = r.b4;
-    m[12] = r.bV;
-    m[13] = r.bZ;
-    m[14] = r.b1;
-    m[15] = r.b5;
+    m[0] = r.bW;
+    m[1] = r.b_;
+    m[2] = r.b2;
+    m[3] = r.b6;
+    m[4] = r.bX;
+    m[5] = r.b$;
+    m[6] = r.b3;
+    m[7] = r.b7;
+    m[8] = r.bY;
+    m[9] = r.b0;
+    m[10] = r.b4;
+    m[11] = r.b8;
+    m[12] = r.bZ;
+    m[13] = r.b1;
+    m[14] = r.b5;
+    m[15] = r.b9;
     return m;
 };
 
 var _MJS_m4x4toRecord = function(m) {
     return {
-        bS: m[0], bW: m[1], b_: m[2], b2: m[3],
-        bT: m[4], bX: m[5], b$: m[6], b3: m[7],
-        bU: m[8], bY: m[9], b0: m[10], b4: m[11],
-        bV: m[12], bZ: m[13], b1: m[14], b5: m[15]
+        bW: m[0], b_: m[1], b2: m[2], b6: m[3],
+        bX: m[4], b$: m[5], b3: m[6], b7: m[7],
+        bY: m[8], b0: m[9], b4: m[10], b8: m[11],
+        bZ: m[12], b1: m[13], b5: m[14], b9: m[15]
     };
 };
 
@@ -5621,7 +5621,7 @@ function _WebGL_doBindAttribute(gl, attribute, mesh, attributes) {
   // The length of the number of vertices that
   // complete one 'thing' based on the drawing mode.
   // ie, 2 for Lines, 3 for Triangles, etc.
-  var elemSize = mesh.a.aQ;
+  var elemSize = mesh.a.aW;
 
   var idxKeys = [];
   for (var i = 0; i < elemSize; i++) {
@@ -5684,10 +5684,10 @@ function _WebGL_doBindAttribute(gl, attribute, mesh, attributes) {
  *  @return {Object} buffer.buffers - will be used to buffer attributes
  */
 function _WebGL_doBindSetup(gl, mesh) {
-  if (mesh.a.aW > 0) {
+  if (mesh.a.a0 > 0) {
     _WebGL_log('Created index buffer');
     var indexBuffer = gl.createBuffer();
-    var indices = _WebGL_makeIndexedBuffer(mesh.c, mesh.a.aW);
+    var indices = _WebGL_makeIndexedBuffer(mesh.c, mesh.a.a0);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
     return {
@@ -5697,7 +5697,7 @@ function _WebGL_doBindSetup(gl, mesh) {
     };
   } else {
     return {
-      numIndices: mesh.a.aQ * _WebGL_listLength(mesh.b),
+      numIndices: mesh.a.aW * _WebGL_listLength(mesh.b),
       indexBuffer: null,
       buffers: {}
     };
@@ -5843,9 +5843,9 @@ var _WebGL_drawGL = F2(function (model, domNode) {
 
     if (buffer.indexBuffer) {
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer.indexBuffer);
-      gl.drawElements(entity.d.a.a_, buffer.numIndices, gl.UNSIGNED_SHORT, 0);
+      gl.drawElements(entity.d.a.a4, buffer.numIndices, gl.UNSIGNED_SHORT, 0);
     } else {
-      gl.drawArrays(entity.d.a.a_, 0, buffer.numIndices);
+      gl.drawArrays(entity.d.a.a4, 0, buffer.numIndices);
     }
 
     _WebGL_listEach($elm_explorations$webgl$WebGL$Internal$disableSetting(model.f), entity.a);
@@ -5892,7 +5892,7 @@ function _WebGL_createUniformSetters(gl, model, program, uniformsMap) {
           var tex = model.f.textures.get(texture);
           if (!tex) {
             _WebGL_log('Created texture');
-            tex = texture.bD(gl);
+            tex = texture.bH(gl);
             model.f.textures.set(texture, tex);
           }
           gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -6454,7 +6454,7 @@ var $elm$core$Array$treeFromBuilder = F2(
 	});
 var $elm$core$Array$builderToArray = F2(
 	function (reverseNodeList, builder) {
-		if (!builder.e) {
+		if (!builder.f) {
 			return A4(
 				$elm$core$Array$Array_elm_builtin,
 				$elm$core$Elm$JsArray$length(builder.i),
@@ -6462,11 +6462,11 @@ var $elm$core$Array$builderToArray = F2(
 				$elm$core$Elm$JsArray$empty,
 				builder.i);
 		} else {
-			var treeLen = builder.e * $elm$core$Array$branchFactor;
+			var treeLen = builder.f * $elm$core$Array$branchFactor;
 			var depth = $elm$core$Basics$floor(
 				A2($elm$core$Basics$logBase, $elm$core$Array$branchFactor, treeLen - 1));
 			var correctNodeList = reverseNodeList ? $elm$core$List$reverse(builder.j) : builder.j;
-			var tree = A2($elm$core$Array$treeFromBuilder, correctNodeList, builder.e);
+			var tree = A2($elm$core$Array$treeFromBuilder, correctNodeList, builder.f);
 			return A4(
 				$elm$core$Array$Array_elm_builtin,
 				$elm$core$Elm$JsArray$length(builder.i) + treeLen,
@@ -6485,7 +6485,7 @@ var $elm$core$Array$initializeHelp = F5(
 				return A2(
 					$elm$core$Array$builderToArray,
 					false,
-					{j: nodeList, e: (len / $elm$core$Array$branchFactor) | 0, i: tail});
+					{j: nodeList, f: (len / $elm$core$Array$branchFactor) | 0, i: tail});
 			} else {
 				var leaf = $elm$core$Array$Leaf(
 					A3($elm$core$Elm$JsArray$initialize, $elm$core$Array$branchFactor, fromIndex, fn));
@@ -6552,7 +6552,7 @@ var $elm$url$Url$Http = 0;
 var $elm$url$Url$Https = 1;
 var $elm$url$Url$Url = F6(
 	function (protocol, host, port_, path, query, fragment) {
-		return {aT: fragment, aV: host, a7: path, bc: port_, bf: protocol, bg: query};
+		return {aZ: fragment, a$: host, bd: path, bi: port_, bl: protocol, bm: query};
 	});
 var $elm$core$String$contains = _String_contains;
 var $elm$core$String$length = _String_length;
@@ -6834,7 +6834,7 @@ var $elm$browser$Browser$document = _Browser_document;
 var $author$project$Main$Da = 1;
 var $author$project$Main$Oka = 0;
 var $author$project$Main$cameraRadius = function (level) {
-	return 10 + (4 * level);
+	return 4 + (4 * level);
 };
 var $elm_explorations$linear_algebra$Math$Vector3$vec3 = _MJS_v3;
 var $author$project$Main$defaultColor = _Utils_Tuple2(
@@ -6880,21 +6880,21 @@ var $author$project$Main$initField = A2(
 			$author$project$Main$Food,
 			0,
 			{
-				b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
+				c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
 				a: 0
 			},
 			{
-				b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
+				c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
 				a: 0
 			}) : ((A2($elm$core$Basics$modBy, 5, (x + y) + z) === 2) ? A3(
 			$author$project$Main$Food,
 			1,
 			{
-				b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
+				c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
 				a: 0
 			},
 			{
-				b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
+				c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
 				a: 0
 			}) : $author$project$Main$Empty);
 	});
@@ -6918,7 +6918,7 @@ var $author$project$Asset$cubePoints = function () {
 	var a3 = A3($elm_explorations$linear_algebra$Math$Vector3$vec3, -0.3, 0.3, 0.1);
 	var a2 = A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0.3, -0.3, 0.1);
 	var a1 = A3($elm_explorations$linear_algebra$Math$Vector3$vec3, -0.3, -0.3, 0.1);
-	return {O: a1, I: a2, J: a3, P: a4, E: b};
+	return {P: a1, I: a2, J: a3, Q: a4, D: b};
 }();
 var $author$project$Asset$cube = function () {
 	var point = $author$project$Asset$cubePoints;
@@ -6926,18 +6926,18 @@ var $author$project$Asset$cube = function () {
 		[
 			_List_fromArray(
 			[
-				_Utils_Tuple3(point.O, point.I, point.J),
-				_Utils_Tuple3(point.I, point.P, point.J),
-				_Utils_Tuple3(point.O, point.E, point.I),
-				_Utils_Tuple3(point.I, point.E, point.P),
-				_Utils_Tuple3(point.P, point.E, point.J),
-				_Utils_Tuple3(point.J, point.E, point.O)
+				_Utils_Tuple3(point.P, point.I, point.J),
+				_Utils_Tuple3(point.I, point.Q, point.J),
+				_Utils_Tuple3(point.P, point.D, point.I),
+				_Utils_Tuple3(point.I, point.D, point.Q),
+				_Utils_Tuple3(point.Q, point.D, point.J),
+				_Utils_Tuple3(point.J, point.D, point.P)
 			])
 		]);
 }();
 var $author$project$Shader$Vertex = F2(
 	function (color, position) {
-		return {bB: color, h: position};
+		return {bF: color, d: position};
 	});
 var $elm_explorations$linear_algebra$Math$Vector3$scale = _MJS_v3scale;
 var $author$project$Block$face = F2(
@@ -6964,7 +6964,7 @@ var $elm_explorations$webgl$WebGL$Mesh3 = F2(
 		return {$: 2, a: a, b: b};
 	});
 var $elm_explorations$webgl$WebGL$triangles = $elm_explorations$webgl$WebGL$Mesh3(
-	{aQ: 3, aW: 0, a_: 4});
+	{aW: 3, a0: 0, a4: 4});
 var $author$project$Block$mesh = function (list) {
 	return $elm_explorations$webgl$WebGL$triangles(
 		$elm$core$List$concat(
@@ -6990,14 +6990,14 @@ var $author$project$Asset$cubeLine = function () {
 	var point = $author$project$Asset$cubePoints;
 	return _List_fromArray(
 		[
-			_Utils_Tuple2(point.O, point.I),
-			_Utils_Tuple2(point.I, point.P),
-			_Utils_Tuple2(point.P, point.J),
-			_Utils_Tuple2(point.J, point.O),
-			_Utils_Tuple2(point.O, point.E),
-			_Utils_Tuple2(point.I, point.E),
-			_Utils_Tuple2(point.J, point.E),
-			_Utils_Tuple2(point.P, point.E)
+			_Utils_Tuple2(point.P, point.I),
+			_Utils_Tuple2(point.I, point.Q),
+			_Utils_Tuple2(point.Q, point.J),
+			_Utils_Tuple2(point.J, point.P),
+			_Utils_Tuple2(point.P, point.D),
+			_Utils_Tuple2(point.I, point.D),
+			_Utils_Tuple2(point.J, point.D),
+			_Utils_Tuple2(point.Q, point.D)
 		]);
 }();
 var $elm_explorations$webgl$WebGL$Mesh2 = F2(
@@ -7005,7 +7005,7 @@ var $elm_explorations$webgl$WebGL$Mesh2 = F2(
 		return {$: 1, a: a, b: b};
 	});
 var $elm_explorations$webgl$WebGL$lines = $elm_explorations$webgl$WebGL$Mesh2(
-	{aQ: 2, aW: 0, a_: 1});
+	{aW: 2, a0: 0, a4: 1});
 var $author$project$Block$linesMesh = F2(
 	function (color, list) {
 		return $elm_explorations$webgl$WebGL$lines(
@@ -10737,72 +10737,114 @@ var $author$project$Main$playerBodyColor = _Utils_Tuple2(
 var $author$project$Main$playerHeadColor = _Utils_Tuple2(
 	A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 236, 75, 40),
 	A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 150, 49, 28));
-var $author$project$Main$initModel = function (level) {
+var $elm$core$Array$length = function (_v0) {
+	var len = _v0.a;
+	return len;
+};
+var $author$project$Grid$length = function (grid) {
+	return $elm$core$Array$length(grid);
+};
+var $author$project$Main$cellSize = 1.3;
+var $author$project$Main$pointToPosition = F2(
+	function (lineSize, _v0) {
+		var x = _v0.a;
+		var y = _v0.b;
+		var z = _v0.c;
+		var slide = (lineSize - 1) / 2;
+		return A3($elm_explorations$linear_algebra$Math$Vector3$vec3, $author$project$Main$cellSize * (x - slide), $author$project$Main$cellSize * (y - slide), $author$project$Main$cellSize * (z - slide));
+	});
+var $author$project$Main$setCameraToHead = F3(
+	function (field, player, camera) {
+		return _Utils_update(
+			camera,
+			{
+				d: A2(
+					$author$project$Main$pointToPosition,
+					$author$project$Grid$length(field),
+					player.l.r)
+			});
+	});
+var $elm_explorations$linear_algebra$Math$Vector3$getX = _MJS_v3getX;
+var $elm_explorations$linear_algebra$Math$Vector3$getY = _MJS_v3getY;
+var $elm_explorations$linear_algebra$Math$Vector3$getZ = _MJS_v3getZ;
+var $mgold$elm_animation$Animation$A = $elm$core$Basics$identity;
+var $mgold$elm_animation$Animation$AnimRecord = F7(
+	function (start, delay_, dos, ramp, ease_, from_, to_) {
+		return {p: delay_, k: dos, E: ease_, h: from_, B: ramp, aP: start, b: to_};
+	});
+var $mgold$elm_animation$Animation$Duration = function (a) {
+	return {$: 0, a: a};
+};
+var $mgold$elm_animation$Animation$defaultDuration = $mgold$elm_animation$Animation$Duration(750);
+var $elm$core$Basics$cos = _Basics_cos;
+var $mgold$elm_animation$Animation$defaultEase = function (x) {
+	return (1 - $elm$core$Basics$cos($elm$core$Basics$pi * x)) / 2;
+};
+var $mgold$elm_animation$Animation$static = function (x) {
+	return A7($mgold$elm_animation$Animation$AnimRecord, 0, 0, $mgold$elm_animation$Animation$defaultDuration, $elm$core$Maybe$Nothing, $mgold$elm_animation$Animation$defaultEase, x, x);
+};
+var $author$project$Motion$staticPositionAnimation = function (vec) {
 	return {
-		t: _Utils_Tuple3(
-			$author$project$Main$cameraRadius(level),
-			$elm$core$Basics$pi / 8,
-			$elm$core$Basics$pi / 16),
-		Q: 0,
-		aB: $zaboco$elm_draggable$Draggable$init,
-		w: $author$project$Main$initField,
-		L: {
-			aP: {
-				aa: A2($author$project$Main$okadaMesh, $author$project$Main$defaultColor, 1),
-				ac: A2($author$project$Main$okadaMesh, $author$project$Main$defaultColor, 0)
+		aB: $mgold$elm_animation$Animation$static(
+			$elm_explorations$linear_algebra$Math$Vector3$getX(vec)),
+		aC: $mgold$elm_animation$Animation$static(
+			$elm_explorations$linear_algebra$Math$Vector3$getY(vec)),
+		aD: $mgold$elm_animation$Animation$static(
+			$elm_explorations$linear_algebra$Math$Vector3$getZ(vec))
+	};
+};
+var $author$project$Main$initModel = function (level) {
+	var player = {
+		n: _List_Nil,
+		l: {
+			r: _Utils_Tuple3(0, 1, 0),
+			e: {
+				c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
+				a: 0
 			},
-			aY: $author$project$Block$meshUnitLine,
-			a1: $author$project$Block$meshCube,
-			a2: $author$project$Block$meshCubeLine,
-			ba: {
-				aa: A2($author$project$Main$okadaMesh, $author$project$Main$playerBodyColor, 1),
-				ac: A2($author$project$Main$okadaMesh, $author$project$Main$playerBodyColor, 0)
+			v: {
+				c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
+				a: 0
+			}
+		}
+	};
+	var field = $author$project$Main$initField;
+	return {
+		o: A3(
+			$author$project$Main$setCameraToHead,
+			field,
+			player,
+			{
+				d: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, 0),
+				aK: $elm$core$Basics$pi * 1.4,
+				aL: (-$elm$core$Basics$pi) / 8,
+				aM: $author$project$Main$cameraRadius(level)
+			}),
+		L: 0,
+		aE: $zaboco$elm_draggable$Draggable$init,
+		F: field,
+		M: {
+			aV: {
+				ab: A2($author$project$Main$okadaMesh, $author$project$Main$defaultColor, 1),
+				ad: A2($author$project$Main$okadaMesh, $author$project$Main$defaultColor, 0)
 			},
-			bb: {
-				aa: A2($author$project$Main$okadaMesh, $author$project$Main$playerHeadColor, 1),
-				ac: A2($author$project$Main$okadaMesh, $author$project$Main$playerHeadColor, 0)
+			a2: $author$project$Block$meshUnitLine,
+			a7: $author$project$Block$meshCube,
+			a8: $author$project$Block$meshCubeLine,
+			bg: {
+				ab: A2($author$project$Main$okadaMesh, $author$project$Main$playerBodyColor, 1),
+				ad: A2($author$project$Main$okadaMesh, $author$project$Main$playerBodyColor, 0)
+			},
+			bh: {
+				ab: A2($author$project$Main$okadaMesh, $author$project$Main$playerHeadColor, 1),
+				ad: A2($author$project$Main$okadaMesh, $author$project$Main$playerHeadColor, 0)
 			}
 		},
-		r: {
-			o: _List_fromArray(
-				[
-					{
-					n: _Utils_Tuple3(0, 1, 0),
-					c: {
-						b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
-						a: 0
-					},
-					s: {
-						b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
-						a: 0
-					}
-				},
-					{
-					n: _Utils_Tuple3(0, 0, 0),
-					c: {
-						b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
-						a: 0
-					},
-					s: {
-						b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
-						a: 0
-					}
-				}
-				]),
-			l: {
-				n: _Utils_Tuple3(0, 2, 0),
-				c: {
-					b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
-					a: 0
-				},
-				s: {
-					b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
-					a: 0
-				}
-			}
-		},
-		X: _Utils_Tuple2(400, 600),
-		af: 0
+		A: player,
+		ay: $author$project$Motion$staticPositionAnimation(
+			A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, 0)),
+		Y: _Utils_Tuple2(400, 600),
+		U: 0
 	};
 };
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
@@ -10823,7 +10865,7 @@ var $elm$browser$Browser$AnimationManager$Delta = function (a) {
 };
 var $elm$browser$Browser$AnimationManager$State = F3(
 	function (subs, request, oldTime) {
-		return {aG: oldTime, bi: request, bl: subs};
+		return {aJ: oldTime, bo: request, br: subs};
 	});
 var $elm$browser$Browser$AnimationManager$init = $elm$core$Task$succeed(
 	A3($elm$browser$Browser$AnimationManager$State, _List_Nil, $elm$core$Maybe$Nothing, 0));
@@ -10834,8 +10876,8 @@ var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
 var $elm$core$Process$spawn = _Scheduler_spawn;
 var $elm$browser$Browser$AnimationManager$onEffects = F3(
 	function (router, subs, _v0) {
-		var request = _v0.bi;
-		var oldTime = _v0.aG;
+		var request = _v0.bo;
+		var oldTime = _v0.aJ;
 		var _v1 = _Utils_Tuple2(request, subs);
 		if (_v1.a.$ === 1) {
 			if (!_v1.b.b) {
@@ -10883,8 +10925,8 @@ var $elm$time$Time$Posix = $elm$core$Basics$identity;
 var $elm$time$Time$millisToPosix = $elm$core$Basics$identity;
 var $elm$browser$Browser$AnimationManager$onSelfMsg = F3(
 	function (router, newTime, _v0) {
-		var subs = _v0.bl;
-		var oldTime = _v0.aG;
+		var subs = _v0.br;
+		var oldTime = _v0.aJ;
 		var send = function (sub) {
 			if (!sub.$) {
 				var tagger = sub.a;
@@ -10964,7 +11006,7 @@ var $elm$browser$Browser$Events$MySub = F3(
 	});
 var $elm$browser$Browser$Events$State = F2(
 	function (subs, pids) {
-		return {a9: pids, bl: subs};
+		return {bf: pids, br: subs};
 	});
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: -2};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
@@ -11195,7 +11237,7 @@ var $elm$core$Dict$merge = F6(
 	});
 var $elm$browser$Browser$Events$Event = F2(
 	function (key, event) {
-		return {aS: event, aX: key};
+		return {aY: event, a1: key};
 	});
 var $elm$browser$Browser$Events$spawn = F3(
 	function (router, key, _v0) {
@@ -11269,7 +11311,7 @@ var $elm$browser$Browser$Events$onEffects = F3(
 			stepLeft,
 			stepBoth,
 			stepRight,
-			state.a9,
+			state.bf,
 			$elm$core$Dict$fromList(newSubs),
 			_Utils_Tuple3(_List_Nil, $elm$core$Dict$empty, _List_Nil));
 		var deadPids = _v0.a;
@@ -11315,8 +11357,8 @@ var $elm$core$List$filterMap = F2(
 	});
 var $elm$browser$Browser$Events$onSelfMsg = F3(
 	function (router, _v0, state) {
-		var key = _v0.aX;
-		var event = _v0.aS;
+		var key = _v0.a1;
+		var event = _v0.aY;
 		var toMessage = function (_v2) {
 			var subKey = _v2.a;
 			var _v3 = _v2.b;
@@ -11325,7 +11367,7 @@ var $elm$browser$Browser$Events$onSelfMsg = F3(
 			var decoder = _v3.c;
 			return _Utils_eq(subKey, key) ? A2(_Browser_decodeEvent, decoder, event) : $elm$core$Maybe$Nothing;
 		};
-		var messages = A2($elm$core$List$filterMap, toMessage, state.bl);
+		var messages = A2($elm$core$List$filterMap, toMessage, state.br);
 		return A2(
 			$elm$core$Task$andThen,
 			function (_v1) {
@@ -11359,7 +11401,7 @@ var $elm$browser$Browser$Events$onMouseMove = A2($elm$browser$Browser$Events$on,
 var $elm$browser$Browser$Events$onMouseUp = A2($elm$browser$Browser$Events$on, 0, 'mouseup');
 var $zaboco$elm_draggable$Internal$Position = F2(
 	function (x, y) {
-		return {bs: x, bt: y};
+		return {aB: x, aC: y};
 	});
 var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$float = _Json_decodeFloat;
@@ -11402,7 +11444,7 @@ var $author$project$Main$subscriptions = function (model) {
 				function (dt) {
 					return $author$project$Main$Delta(dt);
 				}),
-				A2($zaboco$elm_draggable$Draggable$subscriptions, $author$project$Main$DragMsg, model.aB)
+				A2($zaboco$elm_draggable$Draggable$subscriptions, $author$project$Main$DragMsg, model.aE)
 			]));
 };
 var $author$project$Main$OnDragBy = function (a) {
@@ -11410,17 +11452,17 @@ var $author$project$Main$OnDragBy = function (a) {
 };
 var $zaboco$elm_draggable$Draggable$Config = $elm$core$Basics$identity;
 var $zaboco$elm_draggable$Internal$defaultConfig = {
-	ca: function (_v0) {
+	ce: function (_v0) {
 		return $elm$core$Maybe$Nothing;
 	},
-	cb: function (_v1) {
+	cf: function (_v1) {
 		return $elm$core$Maybe$Nothing;
 	},
-	cc: $elm$core$Maybe$Nothing,
-	cd: function (_v2) {
+	cg: $elm$core$Maybe$Nothing,
+	ch: function (_v2) {
 		return $elm$core$Maybe$Nothing;
 	},
-	ce: function (_v3) {
+	ci: function (_v3) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
@@ -11429,7 +11471,7 @@ var $zaboco$elm_draggable$Draggable$basicConfig = function (onDragByListener) {
 	return _Utils_update(
 		defaultConfig,
 		{
-			cb: A2($elm$core$Basics$composeL, $elm$core$Maybe$Just, onDragByListener)
+			cf: A2($elm$core$Basics$composeL, $elm$core$Maybe$Just, onDragByListener)
 		});
 };
 var $author$project$Main$dragConfig = $zaboco$elm_draggable$Draggable$basicConfig($author$project$Main$OnDragBy);
@@ -11437,47 +11479,44 @@ var $elm_explorations$linear_algebra$Math$Matrix4$makeTranslate = _MJS_m4x4makeT
 var $elm_explorations$linear_algebra$Math$Matrix4$mul = _MJS_m4x4mul;
 var $elm_explorations$linear_algebra$Math$Matrix4$makeRotate = _MJS_m4x4makeRotate;
 var $author$project$Shader$rotationToMat = function (r) {
-	return A2($elm_explorations$linear_algebra$Math$Matrix4$makeRotate, r.a, r.b);
+	return A2($elm_explorations$linear_algebra$Math$Matrix4$makeRotate, r.a, r.c);
 };
 var $author$project$Main$blockTransFormMat = function (geo) {
 	return A2(
 		$elm_explorations$linear_algebra$Math$Matrix4$mul,
-		$elm_explorations$linear_algebra$Math$Matrix4$makeTranslate(geo.h),
-		$author$project$Shader$rotationToMat(geo.c));
+		$elm_explorations$linear_algebra$Math$Matrix4$makeTranslate(geo.d),
+		$author$project$Shader$rotationToMat(geo.e));
 };
 var $elm_explorations$linear_algebra$Math$Vector3$direction = _MJS_v3direction;
 var $elm_explorations$linear_algebra$Math$Vector3$add = _MJS_v3add;
 var $elm_explorations$linear_algebra$Math$Matrix4$makeLookAt = _MJS_m4x4makeLookAt;
-var $author$project$Shader$orbitCamelaRotation = function (_v0) {
-	var ca = _v0.b;
-	var cb = _v0.c;
+var $author$project$Shader$orbitCamelaRotation = function (camera) {
 	return A2(
 		$elm_explorations$linear_algebra$Math$Matrix4$mul,
+		$elm_explorations$linear_algebra$Math$Matrix4$makeTranslate(camera.d),
 		A2(
-			$elm_explorations$linear_algebra$Math$Matrix4$makeRotate,
-			ca,
-			A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0)),
-		A2(
-			$elm_explorations$linear_algebra$Math$Matrix4$makeRotate,
-			cb,
-			A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 1, 0, 0)));
+			$elm_explorations$linear_algebra$Math$Matrix4$mul,
+			A2(
+				$elm_explorations$linear_algebra$Math$Matrix4$makeRotate,
+				camera.aK,
+				A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0)),
+			A2(
+				$elm_explorations$linear_algebra$Math$Matrix4$makeRotate,
+				camera.aL,
+				A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 1, 0, 0))));
 };
 var $elm_explorations$linear_algebra$Math$Matrix4$transform = _MJS_v3mul4x4;
-var $author$project$Shader$orbitCamelaPosition = function (_v0) {
-	var cr = _v0.a;
-	var ca = _v0.b;
-	var cb = _v0.c;
+var $author$project$Shader$orbitCamelaPosition = function (camera) {
 	return A2(
 		$elm_explorations$linear_algebra$Math$Matrix4$transform,
-		$author$project$Shader$orbitCamelaRotation(
-			_Utils_Tuple3(cr, ca, cb)),
-		A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, cr));
+		$author$project$Shader$orbitCamelaRotation(camera),
+		A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, camera.aM));
 };
 var $author$project$Shader$cameraLootAk = function (camera) {
 	return A3(
 		$elm_explorations$linear_algebra$Math$Matrix4$makeLookAt,
 		$author$project$Shader$orbitCamelaPosition(camera),
-		A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, 0),
+		camera.d,
 		A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0));
 };
 var $elm_explorations$linear_algebra$Math$Vector4$getX = _MJS_v4getX;
@@ -11492,10 +11531,10 @@ var $elm_explorations$linear_algebra$Math$Vector4$vec4 = _MJS_v4;
 var $author$project$Shader$mulVector = F2(
 	function (mat, v) {
 		var rec = $elm_explorations$linear_algebra$Math$Matrix4$toRecord(mat);
-		var r4 = A4($elm_explorations$linear_algebra$Math$Vector4$vec4, rec.b2, rec.b3, rec.b4, rec.b5);
-		var r3 = A4($elm_explorations$linear_algebra$Math$Vector4$vec4, rec.b_, rec.b$, rec.b0, rec.b1);
-		var r2 = A4($elm_explorations$linear_algebra$Math$Vector4$vec4, rec.bW, rec.bX, rec.bY, rec.bZ);
-		var r1 = A4($elm_explorations$linear_algebra$Math$Vector4$vec4, rec.bS, rec.bT, rec.bU, rec.bV);
+		var r4 = A4($elm_explorations$linear_algebra$Math$Vector4$vec4, rec.b6, rec.b7, rec.b8, rec.b9);
+		var r3 = A4($elm_explorations$linear_algebra$Math$Vector4$vec4, rec.b2, rec.b3, rec.b4, rec.b5);
+		var r2 = A4($elm_explorations$linear_algebra$Math$Vector4$vec4, rec.b_, rec.b$, rec.b0, rec.b1);
+		var r1 = A4($elm_explorations$linear_algebra$Math$Vector4$vec4, rec.bW, rec.bX, rec.bY, rec.bZ);
 		return A4(
 			$elm_explorations$linear_algebra$Math$Vector4$vec4,
 			A2($elm_explorations$linear_algebra$Math$Vector4$dot, r1, v),
@@ -11599,9 +11638,6 @@ var $elm$core$Maybe$map = F2(
 	});
 var $elm_explorations$linear_algebra$Math$Vector3$cross = _MJS_v3cross;
 var $elm_explorations$linear_algebra$Math$Vector3$dot = _MJS_v3dot;
-var $elm_explorations$linear_algebra$Math$Vector3$getX = _MJS_v3getX;
-var $elm_explorations$linear_algebra$Math$Vector3$getY = _MJS_v3getY;
-var $elm_explorations$linear_algebra$Math$Vector3$getZ = _MJS_v3getZ;
 var $elm_explorations$linear_algebra$Math$Vector3$sub = _MJS_v3sub;
 var $author$project$Shader$rayTriangleIntersect = F3(
 	function (rayOrigin, rayDirection, _v0) {
@@ -11680,13 +11716,6 @@ var $author$project$Main$Yminus = 3;
 var $author$project$Main$Yplus = 2;
 var $author$project$Main$Zminus = 5;
 var $author$project$Main$Zplus = 4;
-var $elm$core$Array$length = function (_v0) {
-	var len = _v0.a;
-	return len;
-};
-var $author$project$Grid$length = function (grid) {
-	return $elm$core$Array$length(grid);
-};
 var $elm$core$List$takeReverse = F3(
 	function (n, list, kept) {
 		takeReverse:
@@ -11831,50 +11860,50 @@ var $author$project$Main$move = F2(
 			head,
 			A2(
 				$elm$core$List$take,
-				$elm$core$List$length(player.o) - 1,
-				player.o));
+				$elm$core$List$length(player.n) - 1,
+				player.n));
 		var _v0 = function () {
 			switch (moveTo) {
 				case 0:
 					return _Utils_Tuple2(
 						_Utils_Tuple3(1, 0, 0),
 						{
-							b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, -1),
+							c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, -1),
 							a: $elm$core$Basics$pi / 2
 						});
 				case 1:
 					return _Utils_Tuple2(
 						_Utils_Tuple3(-1, 0, 0),
 						{
-							b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, 1),
+							c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, 1),
 							a: $elm$core$Basics$pi / 2
 						});
 				case 2:
 					return _Utils_Tuple2(
 						_Utils_Tuple3(0, 1, 0),
 						{
-							b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, -1),
+							c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, -1),
 							a: 0
 						});
 				case 3:
 					return _Utils_Tuple2(
 						_Utils_Tuple3(0, -1, 0),
 						{
-							b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, 1),
+							c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, 1),
 							a: $elm$core$Basics$pi
 						});
 				case 4:
 					return _Utils_Tuple2(
 						_Utils_Tuple3(0, 0, 1),
 						{
-							b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 1, 0, 0),
+							c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 1, 0, 0),
 							a: $elm$core$Basics$pi / 2
 						});
 				default:
 					return _Utils_Tuple2(
 						_Utils_Tuple3(0, 0, -1),
 						{
-							b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, -1, 0, 0),
+							c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, -1, 0, 0),
 							a: $elm$core$Basics$pi / 2
 						});
 			}
@@ -11884,23 +11913,14 @@ var $author$project$Main$move = F2(
 		return _Utils_update(
 			player,
 			{
-				o: body,
+				n: body,
 				l: _Utils_update(
 					head,
 					{
-						n: A2(plus, player.l.n, dif),
-						c: rotation
+						r: A2(plus, player.l.r, dif),
+						e: rotation
 					})
 			});
-	});
-var $author$project$Main$cellSize = 1.3;
-var $author$project$Main$pointToPosition = F2(
-	function (lineSize, _v0) {
-		var x = _v0.a;
-		var y = _v0.b;
-		var z = _v0.c;
-		var slide = (lineSize - 1) / 2;
-		return A3($elm_explorations$linear_algebra$Math$Vector3$vec3, $author$project$Main$cellSize * (x - slide), $author$project$Main$cellSize * (y - slide), $author$project$Main$cellSize * (z - slide));
 	});
 var $elm$core$Bitwise$and = _Bitwise_and;
 var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
@@ -11998,13 +12018,13 @@ var $author$project$Main$tailOkada = function (player) {
 	return (!A2(
 		$elm$core$Basics$modBy,
 		2,
-		$elm$core$List$length(player.o))) ? 0 : 1;
+		$elm$core$List$length(player.n))) ? 0 : 1;
 };
-var $author$project$Main$validMove = F2(
-	function (field, player) {
-		var tail = $author$project$Main$tailOkada(player);
+var $author$project$Main$validMove = F3(
+	function (field, before, after) {
+		var tail = $author$project$Main$tailOkada(before);
 		var min = 0;
-		var maybeCell = A2($author$project$Grid$get, player.l.n, field);
+		var maybeCell = A2($author$project$Grid$get, after.l.r, field);
 		var max = $author$project$Grid$length(field) - 1;
 		var isInGrid = function (a) {
 			return (_Utils_cmp(min, a) < 1) && (_Utils_cmp(a, max) < 1);
@@ -12012,14 +12032,14 @@ var $author$project$Main$validMove = F2(
 		var bodyPoints = A2(
 			$elm$core$List$map,
 			function (c) {
-				return c.n;
+				return c.r;
 			},
-			player.o);
-		var _v0 = player.l.n;
+			before.n);
+		var _v0 = after.l.r;
 		var x = _v0.a;
 		var y = _v0.b;
 		var z = _v0.c;
-		return isInGrid(x) && (isInGrid(y) && (isInGrid(z) && ((!A2($elm$core$List$member, player.l.n, bodyPoints)) && function () {
+		return isInGrid(x) && (isInGrid(y) && (isInGrid(z) && ((!A2($elm$core$List$member, after.l.r, bodyPoints)) && function () {
 			if (!maybeCell.$) {
 				var cell = maybeCell.a;
 				if (!cell.$) {
@@ -12041,13 +12061,13 @@ var $author$project$Main$moveTargetBoxBlock = F3(
 		var position = A2(
 			$author$project$Main$pointToPosition,
 			$author$project$Grid$length(field),
-			next.l.n);
-		return A2($author$project$Main$validMove, field, next) ? $elm$core$Maybe$Just(
+			next.l.r);
+		return A3($author$project$Main$validMove, field, player, next) ? $elm$core$Maybe$Just(
 			_Utils_Tuple2(
 				moveTo,
 				{
-					h: A2($elm_explorations$linear_algebra$Math$Vector3$add, position, geo.h),
-					c: geo.c
+					d: A2($elm_explorations$linear_algebra$Math$Vector3$add, position, geo.d),
+					e: geo.e
 				})) : $elm$core$Maybe$Nothing;
 	});
 var $elm_community$maybe_extra$Maybe$Extra$cons = F2(
@@ -12072,9 +12092,9 @@ var $author$project$Main$moveTargetBoxBlockList = F2(
 					_Utils_Tuple2(
 						0,
 						{
-							h: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, -0.5, 0, 0),
-							c: {
-								b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, -1, 0),
+							d: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, -0.5, 0, 0),
+							e: {
+								c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, -1, 0),
 								a: $elm$core$Basics$pi / 2
 							}
 						})),
@@ -12085,9 +12105,9 @@ var $author$project$Main$moveTargetBoxBlockList = F2(
 					_Utils_Tuple2(
 						1,
 						{
-							h: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0.5, 0, 0),
-							c: {
-								b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
+							d: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0.5, 0, 0),
+							e: {
+								c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
 								a: $elm$core$Basics$pi / 2
 							}
 						})),
@@ -12098,9 +12118,9 @@ var $author$project$Main$moveTargetBoxBlockList = F2(
 					_Utils_Tuple2(
 						2,
 						{
-							h: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, -0.5, 0),
-							c: {
-								b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 1, 0, 0),
+							d: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, -0.5, 0),
+							e: {
+								c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 1, 0, 0),
 								a: $elm$core$Basics$pi / 2
 							}
 						})),
@@ -12111,9 +12131,9 @@ var $author$project$Main$moveTargetBoxBlockList = F2(
 					_Utils_Tuple2(
 						3,
 						{
-							h: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0.5, 0),
-							c: {
-								b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, -1, 0, 0),
+							d: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0.5, 0),
+							e: {
+								c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, -1, 0, 0),
 								a: $elm$core$Basics$pi / 2
 							}
 						})),
@@ -12124,9 +12144,9 @@ var $author$project$Main$moveTargetBoxBlockList = F2(
 					_Utils_Tuple2(
 						4,
 						{
-							h: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, -0.5),
-							c: {
-								b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
+							d: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, -0.5),
+							e: {
+								c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
 								a: $elm$core$Basics$pi
 							}
 						})),
@@ -12137,9 +12157,9 @@ var $author$project$Main$moveTargetBoxBlockList = F2(
 					_Utils_Tuple2(
 						5,
 						{
-							h: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, 0.5),
-							c: {
-								b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
+							d: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, 0.5),
+							e: {
+								c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
 								a: 0
 							}
 						}))
@@ -12147,11 +12167,11 @@ var $author$project$Main$moveTargetBoxBlockList = F2(
 	});
 var $author$project$Main$getClickedMoveTo = F2(
 	function (model, pos) {
-		var origin = $author$project$Shader$orbitCamelaPosition(model.t);
+		var origin = $author$project$Shader$orbitCamelaPosition(model.o);
 		var destination = A3(
 			$author$project$Shader$getClickPosition,
-			model.t,
-			$author$project$Main$getPerspective(model.X),
+			model.o,
+			$author$project$Main$getPerspective(model.Y),
 			pos);
 		var direction = A2($elm_explorations$linear_algebra$Math$Vector3$direction, destination, origin);
 		return A2(
@@ -12183,7 +12203,7 @@ var $author$project$Main$getClickedMoveTo = F2(
 							$elm$core$List$concat($author$project$Asset$cube));
 						return _Utils_Tuple2(triangles, moveTo);
 					},
-					A2($author$project$Main$moveTargetBoxBlockList, model.w, model.r))));
+					A2($author$project$Main$moveTargetBoxBlockList, model.F, model.A))));
 	});
 var $elm$core$Basics$min = F2(
 	function (x, y) {
@@ -12204,7 +12224,7 @@ var $elm$core$Array$indexedMap = F2(
 		var tail = _v0.d;
 		var initialBuilder = {
 			j: _List_Nil,
-			e: 0,
+			f: 0,
 			i: A3(
 				$elm$core$Elm$JsArray$indexedMap,
 				func,
@@ -12218,12 +12238,12 @@ var $elm$core$Array$indexedMap = F2(
 					return A3($elm$core$Elm$JsArray$foldl, helper, builder, subTree);
 				} else {
 					var leaf = node.a;
-					var offset = builder.e * $elm$core$Array$branchFactor;
+					var offset = builder.f * $elm$core$Array$branchFactor;
 					var mappedLeaf = $elm$core$Array$Leaf(
 						A3($elm$core$Elm$JsArray$indexedMap, func, offset, leaf));
 					return {
 						j: A2($elm$core$List$cons, mappedLeaf, builder.j),
-						e: builder.e + 1,
+						f: builder.f + 1,
 						i: builder.i
 					};
 				}
@@ -12278,17 +12298,17 @@ var $author$project$Grid$set = F3(
 var $author$project$Main$moveAndEat = F3(
 	function (moveTo, field, player) {
 		var movedPlayer = A2($author$project$Main$move, moveTo, player);
-		if (A2($author$project$Main$validMove, field, movedPlayer)) {
-			var maybeCell = A2($author$project$Grid$get, movedPlayer.l.n, field);
+		if (A3($author$project$Main$validMove, field, player, movedPlayer)) {
+			var maybeCell = A2($author$project$Grid$get, movedPlayer.l.r, field);
 			if (!maybeCell.$) {
 				var cell = maybeCell.a;
 				if (!cell.$) {
 					return _Utils_Tuple2(
-						A3($author$project$Grid$set, movedPlayer.l.n, $author$project$Main$Empty, field),
+						A3($author$project$Grid$set, movedPlayer.l.r, $author$project$Main$Empty, field),
 						_Utils_update(
 							movedPlayer,
 							{
-								o: A2($elm$core$List$cons, player.l, player.o)
+								n: A2($elm$core$List$cons, player.l, player.n)
 							}));
 				} else {
 					return _Utils_Tuple2(field, movedPlayer);
@@ -12299,6 +12319,104 @@ var $author$project$Main$moveAndEat = F3(
 		} else {
 			return _Utils_Tuple2(field, player);
 		}
+	});
+var $mgold$elm_animation$Animation$animation = function (t) {
+	return A7($mgold$elm_animation$Animation$AnimRecord, t, 0, $mgold$elm_animation$Animation$defaultDuration, $elm$core$Maybe$Nothing, $mgold$elm_animation$Animation$defaultEase, 0, 1);
+};
+var $mgold$elm_animation$Animation$delay = F2(
+	function (x, _v0) {
+		var a = _v0;
+		return _Utils_update(
+			a,
+			{p: x});
+	});
+var $mgold$elm_animation$Animation$duration = F2(
+	function (x, _v0) {
+		var a = _v0;
+		return _Utils_update(
+			a,
+			{
+				k: $mgold$elm_animation$Animation$Duration(x)
+			});
+	});
+var $mgold$elm_animation$Animation$ease = F2(
+	function (x, _v0) {
+		var a = _v0;
+		return _Utils_update(
+			a,
+			{E: x});
+	});
+var $mgold$elm_animation$Animation$from = F2(
+	function (x, _v0) {
+		var a = _v0;
+		return _Utils_update(
+			a,
+			{h: x, B: $elm$core$Maybe$Nothing});
+	});
+var $mgold$elm_animation$Animation$to = F2(
+	function (x, _v0) {
+		var a = _v0;
+		return _Utils_update(
+			a,
+			{B: $elm$core$Maybe$Nothing, b: x});
+	});
+var $author$project$Motion$positionAnimation = F4(
+	function (clock, duration, from, to) {
+		var anim = A2(
+			$mgold$elm_animation$Animation$ease,
+			function (x) {
+				return x;
+			},
+			A2(
+				$mgold$elm_animation$Animation$delay,
+				0,
+				A2(
+					$mgold$elm_animation$Animation$duration,
+					duration,
+					$mgold$elm_animation$Animation$animation(clock))));
+		return {
+			aB: A2(
+				$mgold$elm_animation$Animation$to,
+				$elm_explorations$linear_algebra$Math$Vector3$getX(to),
+				A2(
+					$mgold$elm_animation$Animation$from,
+					$elm_explorations$linear_algebra$Math$Vector3$getX(from),
+					anim)),
+			aC: A2(
+				$mgold$elm_animation$Animation$to,
+				$elm_explorations$linear_algebra$Math$Vector3$getY(to),
+				A2(
+					$mgold$elm_animation$Animation$from,
+					$elm_explorations$linear_algebra$Math$Vector3$getY(from),
+					anim)),
+			aD: A2(
+				$mgold$elm_animation$Animation$to,
+				$elm_explorations$linear_algebra$Math$Vector3$getZ(to),
+				A2(
+					$mgold$elm_animation$Animation$from,
+					$elm_explorations$linear_algebra$Math$Vector3$getZ(from),
+					anim))
+		};
+	});
+var $author$project$Main$moveModel = F2(
+	function (moveTo, model) {
+		var camera = model.o;
+		var _v0 = A3($author$project$Main$moveAndEat, moveTo, model.F, model.A);
+		var nextField = _v0.a;
+		var nextPlayer = _v0.b;
+		var nextCamera = A3($author$project$Main$setCameraToHead, nextField, nextPlayer, camera);
+		var positionAnimation = A4(
+			$author$project$Motion$positionAnimation,
+			model.U,
+			300,
+			A2(
+				$elm_explorations$linear_algebra$Math$Vector3$sub,
+				$author$project$Shader$orbitCamelaPosition(nextCamera),
+				$author$project$Shader$orbitCamelaPosition(camera)),
+			A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, 0));
+		return _Utils_update(
+			model,
+			{o: nextCamera, L: 0, F: nextField, A: nextPlayer, ay: positionAnimation});
 	});
 var $zaboco$elm_draggable$Cmd$Extra$message = function (x) {
 	return A2(
@@ -12321,7 +12439,7 @@ var $zaboco$elm_draggable$Internal$DraggingTentative = F2(
 	});
 var $zaboco$elm_draggable$Internal$distanceTo = F2(
 	function (end, start) {
-		return _Utils_Tuple2(end.bs - start.bs, end.bt - start.bt);
+		return _Utils_Tuple2(end.aB - start.aB, end.aC - start.aC);
 	});
 var $zaboco$elm_draggable$Internal$updateAndEmit = F3(
 	function (config, msg, drag) {
@@ -12337,7 +12455,7 @@ var $zaboco$elm_draggable$Internal$updateAndEmit = F3(
 						var initialPosition = _v2.b;
 						return _Utils_Tuple2(
 							A2($zaboco$elm_draggable$Internal$DraggingTentative, key, initialPosition),
-							config.ce(key));
+							config.ci(key));
 					} else {
 						break _v0$5;
 					}
@@ -12349,14 +12467,14 @@ var $zaboco$elm_draggable$Internal$updateAndEmit = F3(
 							var oldPosition = _v3.b;
 							return _Utils_Tuple2(
 								$zaboco$elm_draggable$Internal$Dragging(oldPosition),
-								config.cd(key));
+								config.ch(key));
 						case 2:
 							var _v4 = _v0.a;
 							var key = _v4.a;
 							var _v5 = _v0.b;
 							return _Utils_Tuple2(
 								$zaboco$elm_draggable$Internal$NotDragging,
-								config.ca(key));
+								config.ce(key));
 						default:
 							break _v0$5;
 					}
@@ -12367,11 +12485,11 @@ var $zaboco$elm_draggable$Internal$updateAndEmit = F3(
 							var newPosition = _v0.b.a;
 							return _Utils_Tuple2(
 								$zaboco$elm_draggable$Internal$Dragging(newPosition),
-								config.cb(
+								config.cf(
 									A2($zaboco$elm_draggable$Internal$distanceTo, newPosition, oldPosition)));
 						case 2:
 							var _v6 = _v0.b;
-							return _Utils_Tuple2($zaboco$elm_draggable$Internal$NotDragging, config.cc);
+							return _Utils_Tuple2($zaboco$elm_draggable$Internal$NotDragging, config.cg);
 						default:
 							break _v0$5;
 					}
@@ -12393,134 +12511,127 @@ var $zaboco$elm_draggable$Draggable$updateDraggable = F3(
 	});
 var $zaboco$elm_draggable$Draggable$update = F3(
 	function (config, msg, model) {
-		var _v0 = A3($zaboco$elm_draggable$Draggable$updateDraggable, config, msg, model.aB);
+		var _v0 = A3($zaboco$elm_draggable$Draggable$updateDraggable, config, msg, model.aE);
 		var dragState = _v0.a;
 		var dragCmd = _v0.b;
 		return _Utils_Tuple2(
 			_Utils_update(
 				model,
-				{aB: dragState}),
+				{aE: dragState}),
 			dragCmd);
 	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
-		var _v0 = model.X;
+		var camera = model.o;
+		var _v0 = model.Y;
 		var width = _v0.a;
 		var height = _v0.b;
-		var _v1 = model.t;
-		var cr = _v1.a;
-		var ca = _v1.b;
-		var cb = _v1.c;
 		switch (msg.$) {
 			case 0:
 				var next = $author$project$Main$initModel(1);
 				return _Utils_Tuple2(next, $elm$core$Platform$Cmd$none);
 			case 1:
 				var dt = msg.a;
-				var time = model.af + dt;
+				var time = model.U + dt;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							r: {
-								o: A2(
+							A: {
+								n: A2(
 									$elm$core$List$map,
 									function (pc) {
-										var turning = pc.s;
+										var turning = pc.v;
 										return _Utils_update(
 											pc,
 											{
-												s: _Utils_update(
+												v: _Utils_update(
 													turning,
 													{a: turning.a + (dt / 1000)})
 											});
 									},
-									model.r.o),
+									model.A.n),
 								l: function () {
-									var head = model.r.l;
-									var turning = head.s;
+									var head = model.A.l;
+									var turning = head.v;
 									return _Utils_update(
 										head,
 										{
-											s: _Utils_update(
+											v: _Utils_update(
 												turning,
 												{a: turning.a + (dt / 1000)})
 										});
 								}()
 							},
-							af: time
+							U: time
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 2:
-				var _v3 = msg.a;
-				var dx = _v3.a;
-				var dy = _v3.b;
+				var _v2 = msg.a;
+				var dx = _v2.a;
+				var dy = _v2.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							t: _Utils_Tuple3(
-								cr,
-								ca - (dx / 30),
-								$author$project$Main$limitRadian(cb - (dy / 30))),
-							Q: model.Q + 1
+							o: _Utils_update(
+								camera,
+								{
+									aK: camera.aK - (dx / 30),
+									aL: $author$project$Main$limitRadian(camera.aL - (dy / 30))
+								}),
+							L: model.L + 1
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 3:
 				var dragMsg = msg.a;
 				return A3($zaboco$elm_draggable$Draggable$update, $author$project$Main$dragConfig, dragMsg, model);
 			case 5:
-				var _v4 = msg.a;
-				var x = _v4.a;
-				var y = _v4.b;
-				if (model.Q < 10) {
+				var _v3 = msg.a;
+				var x = _v3.a;
+				var y = _v3.b;
+				if (model.L < 10) {
 					var maybeMoveTo = A2(
 						$author$project$Main$getClickedMoveTo,
 						model,
 						_Utils_Tuple2(((x * 2) / width) - 1, 1 - ((y / height) * 2)));
-					var _v5 = function () {
+					var nextModel = function () {
 						if (!maybeMoveTo.$) {
 							var moveTo = maybeMoveTo.a;
-							return A3($author$project$Main$moveAndEat, moveTo, model.w, model.r);
+							return A2($author$project$Main$moveModel, moveTo, model);
 						} else {
-							return _Utils_Tuple2(model.w, model.r);
+							return model;
 						}
 					}();
-					var nextField = _v5.a;
-					var nextPlayer = _v5.b;
 					return _Utils_Tuple2(
 						_Utils_update(
-							model,
-							{Q: 0, w: nextField, r: nextPlayer}),
+							nextModel,
+							{L: 0}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{Q: 0}),
+							{L: 0}),
 						$elm$core$Platform$Cmd$none);
 				}
 			case 4:
 				var moveTo = msg.a;
-				var _v7 = A3($author$project$Main$moveAndEat, moveTo, model.w, model.r);
-				var nextField = _v7.a;
-				var nextPlayer = _v7.b;
 				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{w: nextField, r: nextPlayer}),
+					A2($author$project$Main$moveModel, moveTo, model),
 					$elm$core$Platform$Cmd$none);
 			default:
 				var event = msg.a;
-				var _v8 = model.t;
-				var a = _v8.a;
-				var b = _v8.b;
-				var c = _v8.c;
+				var radius = camera.aM - (event.bL / 100);
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							t: _Utils_Tuple3(a + (event.bH / 100), b, c)
+							o: _Utils_update(
+								camera,
+								{
+									aM: A2($elm$core$Basics$max, radius, 4)
+								})
 						}),
 					$elm$core$Platform$Cmd$none);
 		}
@@ -12536,6 +12647,56 @@ var $author$project$Main$Zoom = function (a) {
 	return {$: 6, a: a};
 };
 var $elm$html$Html$a = _VirtualDom_node('a');
+var $elm$core$Basics$clamp = F3(
+	function (low, high, number) {
+		return (_Utils_cmp(number, low) < 0) ? low : ((_Utils_cmp(number, high) > 0) ? high : number);
+	});
+var $elm$core$Basics$abs = function (n) {
+	return (n < 0) ? (-n) : n;
+};
+var $mgold$elm_animation$Animation$dur = F3(
+	function (dos, from_, to_) {
+		if (!dos.$) {
+			var t = dos.a;
+			return t;
+		} else {
+			var s = dos.a;
+			return $elm$core$Basics$abs(to_ - from_) / s;
+		}
+	});
+var $mgold$elm_animation$Animation$animate = F2(
+	function (clock, _v0) {
+		var start = _v0.aP;
+		var delay_ = _v0.p;
+		var dos = _v0.k;
+		var ramp = _v0.B;
+		var from_ = _v0.h;
+		var to_ = _v0.b;
+		var ease_ = _v0.E;
+		var duration_ = A3($mgold$elm_animation$Animation$dur, dos, from_, to_);
+		var fr = A3($elm$core$Basics$clamp, 0, 1, ((clock - start) - delay_) / duration_);
+		var eased = ease_(fr);
+		var correction = function () {
+			if (ramp.$ === 1) {
+				return 0;
+			} else {
+				var vel = ramp.a;
+				var from__ = vel * (clock - start);
+				var eased_ = $mgold$elm_animation$Animation$defaultEase(fr);
+				return from__ - (from__ * eased_);
+			}
+		}();
+		return (from_ + ((to_ - from_) * eased)) + correction;
+	});
+var $author$project$Motion$animatePosition = F2(
+	function (t, animation) {
+		var next = A3(
+			$elm_explorations$linear_algebra$Math$Vector3$vec3,
+			A2($mgold$elm_animation$Animation$animate, t, animation.aB),
+			A2($mgold$elm_animation$Animation$animate, t, animation.aC),
+			A2($mgold$elm_animation$Animation$animate, t, animation.aD));
+		return $elm_explorations$linear_algebra$Math$Matrix4$makeTranslate(next);
+	});
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
@@ -12574,10 +12735,10 @@ var $author$project$Main$cellToBlock = F3(
 			var turning = cell.c;
 			return $elm$core$Maybe$Just(
 				{
-					W: {h: position, c: rotation},
-					aD: $elm$core$String$fromInt(x) + (',' + ($elm$core$String$fromInt(y) + (',' + $elm$core$String$fromInt(z)))),
+					X: {d: position, e: rotation},
+					aG: $elm$core$String$fromInt(x) + (',' + ($elm$core$String$fromInt(y) + (',' + $elm$core$String$fromInt(z)))),
 					at: okada,
-					s: turning
+					v: turning
 				});
 		} else {
 			return $elm$core$Maybe$Nothing;
@@ -12588,13 +12749,13 @@ var $elm_explorations$webgl$WebGL$Internal$DepthTest = F4(
 		return {$: 1, a: a, b: b, c: c, d: d};
 	});
 var $elm_explorations$webgl$WebGL$Settings$DepthTest$less = function (_v0) {
-	var write = _v0.D;
-	var near = _v0.z;
-	var far = _v0.y;
+	var write = _v0.C;
+	var near = _v0.x;
+	var far = _v0.w;
 	return A4($elm_explorations$webgl$WebGL$Internal$DepthTest, 513, write, near, far);
 };
 var $elm_explorations$webgl$WebGL$Settings$DepthTest$default = $elm_explorations$webgl$WebGL$Settings$DepthTest$less(
-	{y: 1, z: 0, D: true});
+	{w: 1, x: 0, C: true});
 var $elm_explorations$webgl$WebGL$Internal$disableSetting = F2(
 	function (cache, setting) {
 		switch (setting.$) {
@@ -12665,35 +12826,43 @@ var $elm_explorations$webgl$WebGL$entity = $elm_explorations$webgl$WebGL$entityW
 var $author$project$Shader$fragmentShader = {
 	src: '\n\n        precision mediump float;\n        uniform float shade;\n        varying vec3 vcolor;\n        void main () {\n            gl_FragColor = shade * vec4(vcolor, 1.0);\n        }\n\n    ',
 	attributes: {},
-	uniforms: {shade: 'bk'}
+	uniforms: {shade: 'bq'}
 };
 var $elm_explorations$linear_algebra$Math$Matrix4$makeScale3 = _MJS_m4x4makeScale3;
+var $elm_explorations$linear_algebra$Math$Vector3$negate = _MJS_v3negate;
 var $author$project$Main$toMesh = F2(
 	function (set, block) {
-		return (!block.at) ? set.ac : set.aa;
+		return (!block.at) ? set.ad : set.ab;
 	});
 var $author$project$Shader$uniforms = F4(
 	function (camera, perspective, position, rotation) {
 		return {
-			t: $author$project$Shader$cameraLootAk(camera),
-			a8: perspective,
-			c: rotation,
-			bk: 0.8,
-			bo: $elm_explorations$linear_algebra$Math$Matrix4$makeTranslate(position)
+			o: $author$project$Shader$cameraLootAk(camera),
+			be: perspective,
+			e: rotation,
+			bq: 0.8,
+			bu: $elm_explorations$linear_algebra$Math$Matrix4$makeTranslate(position)
 		};
 	});
 var $author$project$Shader$vertexShader = {
 	src: '\n\n        attribute vec3 position;\n        attribute vec3 color;\n        uniform mat4 perspective;\n        uniform mat4 camera;\n        uniform mat4 rotation;\n        uniform mat4 translation;\n        varying vec3 vcolor;\n        void main () {\n            gl_Position = perspective * camera * translation * rotation * vec4(position, 1.0);\n            vcolor = color;\n        }\n\n    ',
-	attributes: {color: 'bB', position: 'h'},
-	uniforms: {camera: 't', perspective: 'a8', rotation: 'c', translation: 'bo'}
+	attributes: {color: 'bF', position: 'd'},
+	uniforms: {camera: 'o', perspective: 'be', rotation: 'e', translation: 'bu'}
 };
-var $author$project$Main$frontEntity = F5(
-	function (camera, perspective, set, scale, block) {
+var $author$project$Main$frontEntity = F6(
+	function (camera, perspective, set, scale, translation, block) {
 		var transfrom = A2(
 			$elm_explorations$linear_algebra$Math$Matrix4$mul,
-			$author$project$Shader$orbitCamelaRotation(camera),
-			A3($elm_explorations$linear_algebra$Math$Matrix4$makeScale3, scale, scale, scale));
-		var p = block.W.h;
+			translation,
+			A2(
+				$elm_explorations$linear_algebra$Math$Matrix4$mul,
+				$elm_explorations$linear_algebra$Math$Matrix4$makeTranslate(
+					$elm_explorations$linear_algebra$Math$Vector3$negate(camera.d)),
+				A2(
+					$elm_explorations$linear_algebra$Math$Matrix4$mul,
+					$author$project$Shader$orbitCamelaRotation(camera),
+					A3($elm_explorations$linear_algebra$Math$Matrix4$makeScale3, scale, scale, scale))));
+		var p = block.X.d;
 		return A4(
 			$elm_explorations$webgl$WebGL$entity,
 			$author$project$Shader$vertexShader,
@@ -12729,13 +12898,13 @@ var $author$project$Grid$toList = function (grid) {
 					}),
 				grid)));
 };
-var $author$project$Main$fieldEntities = F4(
-	function (camera, perspective, set, grid) {
+var $author$project$Main$fieldEntities = F5(
+	function (camera, perspective, set, translation, grid) {
 		var lineSize = $author$project$Grid$length(grid);
 		return A2(
 			$elm$core$List$map,
 			function (block) {
-				return A5($author$project$Main$frontEntity, camera, perspective, set, 0.5, block);
+				return A6($author$project$Main$frontEntity, camera, perspective, set, 0.5, translation, block);
 			},
 			$elm_community$maybe_extra$Maybe$Extra$values(
 				A2(
@@ -12747,24 +12916,23 @@ var $author$project$Main$fieldEntities = F4(
 					},
 					$author$project$Grid$toList(grid))));
 	});
-var $author$project$Main$lineEntity = F5(
-	function (camera, perspective, mesh, size, geo) {
-		var r = geo.c;
-		var p = geo.h;
+var $author$project$Main$lineEntity = F6(
+	function (camera, perspective, mesh, size, translation, geo) {
+		var r = geo.e;
+		var transform = A2(
+			$elm_explorations$linear_algebra$Math$Matrix4$mul,
+			translation,
+			A2(
+				$elm_explorations$linear_algebra$Math$Matrix4$mul,
+				$author$project$Shader$rotationToMat(r),
+				A3($elm_explorations$linear_algebra$Math$Matrix4$makeScale3, size, size, size)));
+		var p = geo.d;
 		return A4(
 			$elm_explorations$webgl$WebGL$entity,
 			$author$project$Shader$vertexShader,
 			$author$project$Shader$fragmentShader,
 			mesh,
-			A4(
-				$author$project$Shader$uniforms,
-				camera,
-				perspective,
-				p,
-				A2(
-					$elm_explorations$linear_algebra$Math$Matrix4$mul,
-					$author$project$Shader$rotationToMat(r),
-					A3($elm_explorations$linear_algebra$Math$Matrix4$makeScale3, size, size, size))));
+			A4($author$project$Shader$uniforms, camera, perspective, p, transform));
 	});
 var $elm$core$Array$repeat = F2(
 	function (n, e) {
@@ -12775,8 +12943,8 @@ var $elm$core$Array$repeat = F2(
 				return e;
 			});
 	});
-var $author$project$Main$fieldLineEntities = F4(
-	function (camera, perspective, mesh, grid) {
+var $author$project$Main$fieldLineEntities = F5(
+	function (camera, perspective, mesh, translation, grid) {
 		var slide = A3($elm_explorations$linear_algebra$Math$Vector3$vec3, $author$project$Main$cellSize / 2, $author$project$Main$cellSize / 2, $author$project$Main$cellSize / 2);
 		var lineSize = $author$project$Grid$length(grid);
 		var repeatArray = A2($elm$core$Array$repeat, lineSize + 1, 0);
@@ -12803,22 +12971,23 @@ var $author$project$Main$fieldLineEntities = F4(
 			function (_v2) {
 				var a = _v2.a;
 				var b = _v2.b;
-				return A5(
+				return A6(
 					$author$project$Main$lineEntity,
 					camera,
 					perspective,
 					mesh,
 					lineSize * $author$project$Main$cellSize,
+					translation,
 					{
-						h: A2(
+						d: A2(
 							$elm_explorations$linear_algebra$Math$Vector3$sub,
 							A2(
 								$author$project$Main$pointToPosition,
 								lineSize,
 								_Utils_Tuple3(0, b, a)),
 							slide),
-						c: {
-							b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, 1),
+						e: {
+							c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 0, 1),
 							a: (-$elm$core$Basics$pi) / 2
 						}
 					});
@@ -12827,22 +12996,23 @@ var $author$project$Main$fieldLineEntities = F4(
 			function (_v1) {
 				var a = _v1.a;
 				var b = _v1.b;
-				return A5(
+				return A6(
 					$author$project$Main$lineEntity,
 					camera,
 					perspective,
 					mesh,
 					lineSize * $author$project$Main$cellSize,
+					translation,
 					{
-						h: A2(
+						d: A2(
 							$elm_explorations$linear_algebra$Math$Vector3$sub,
 							A2(
 								$author$project$Main$pointToPosition,
 								lineSize,
 								_Utils_Tuple3(b, 0, a)),
 							slide),
-						c: {
-							b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
+						e: {
+							c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 0, 1, 0),
 							a: (-$elm$core$Basics$pi) / 2
 						}
 					});
@@ -12851,22 +13021,23 @@ var $author$project$Main$fieldLineEntities = F4(
 			function (_v0) {
 				var a = _v0.a;
 				var b = _v0.b;
-				return A5(
+				return A6(
 					$author$project$Main$lineEntity,
 					camera,
 					perspective,
 					mesh,
 					lineSize * $author$project$Main$cellSize,
+					translation,
 					{
-						h: A2(
+						d: A2(
 							$elm_explorations$linear_algebra$Math$Vector3$sub,
 							A2(
 								$author$project$Main$pointToPosition,
 								lineSize,
 								_Utils_Tuple3(a, b, 0)),
 							slide),
-						c: {
-							b: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 1, 0, 0),
+						e: {
+							c: A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 1, 0, 0),
 							a: $elm$core$Basics$pi / 2
 						}
 					});
@@ -12896,7 +13067,7 @@ var $elm$html$Html$Attributes$href = function (url) {
 		_VirtualDom_noJavaScriptUri(url));
 };
 var $zaboco$elm_draggable$Draggable$alwaysPreventDefaultAndStopPropagation = function (msg) {
-	return {b6: msg, cn: true, cr: true};
+	return {ca: msg, cr: true, cv: true};
 };
 var $zaboco$elm_draggable$Internal$StartDragging = F2(
 	function (a, b) {
@@ -12961,8 +13132,8 @@ var $author$project$Main$moveTargetBoxBlockEntities = F5(
 						$author$project$Shader$uniforms,
 						camera,
 						perspective,
-						geo.h,
-						$author$project$Shader$rotationToMat(geo.c));
+						geo.d,
+						$author$project$Shader$rotationToMat(geo.e));
 					return _List_fromArray(
 						[
 							A4($elm_explorations$webgl$WebGL$entity, $author$project$Shader$vertexShader, $author$project$Shader$fragmentShader, mesh, uni),
@@ -12987,10 +13158,10 @@ var $elm$html$Html$Events$onClick = function (msg) {
 		'click',
 		$elm$json$Json$Decode$succeed(msg));
 };
-var $mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$defaultOptions = {cn: true, cr: false};
+var $mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$defaultOptions = {cr: true, cv: false};
 var $mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$Event = F6(
 	function (keys, button, clientPos, offsetPos, pagePos, screenPos) {
-		return {bx: button, bA: clientPos, bR: keys, b9: offsetPos, ci: pagePos, cp: screenPos};
+		return {bB: button, bE: clientPos, bV: keys, cd: offsetPos, cm: pagePos, ct: screenPos};
 	});
 var $mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$BackButton = 4;
 var $mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$ErrorButton = 0;
@@ -13028,7 +13199,7 @@ var $mpizenberg$elm_pointer_events$Internal$Decode$clientPos = A3(
 	A2($elm$json$Json$Decode$field, 'clientY', $elm$json$Json$Decode$float));
 var $mpizenberg$elm_pointer_events$Internal$Decode$Keys = F3(
 	function (alt, ctrl, shift) {
-		return {bv: alt, bE: ctrl, cq: shift};
+		return {bz: alt, bI: ctrl, cu: shift};
 	});
 var $elm$json$Json$Decode$bool = _Json_decodeBool;
 var $elm$json$Json$Decode$map3 = _Json_map3;
@@ -13073,9 +13244,9 @@ var $mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$onWithOptions = F3(
 				$elm$json$Json$Decode$map,
 				function (ev) {
 					return {
-						b6: tag(ev),
-						cn: options.cn,
-						cr: options.cr
+						ca: tag(ev),
+						cr: options.cr,
+						cv: options.cv
 					};
 				},
 				$mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$eventDecoder));
@@ -13083,16 +13254,16 @@ var $mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$onWithOptions = F3(
 var $mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$onClick = A2($mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$onWithOptions, 'click', $mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$defaultOptions);
 var $author$project$Pointer$EventWithOffset = F2(
 	function (event, targetOffset) {
-		return {aS: event, bn: targetOffset};
+		return {aY: event, bt: targetOffset};
 	});
 var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$Event = F4(
 	function (keys, changedTouches, targetTouches, touches) {
-		return {bz: changedTouches, bR: keys, ct: targetTouches, cx: touches};
+		return {bD: changedTouches, bV: keys, cx: targetTouches, cB: touches};
 	});
 var $elm$json$Json$Decode$map4 = _Json_map4;
 var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$Touch = F4(
 	function (identifier, clientPos, pagePos, screenPos) {
-		return {bA: clientPos, bN: identifier, ci: pagePos, cp: screenPos};
+		return {bE: clientPos, bR: identifier, cm: pagePos, ct: screenPos};
 	});
 var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$touchDecoder = A5(
 	$elm$json$Json$Decode$map4,
@@ -13157,7 +13328,7 @@ var $author$project$Pointer$onTouchEnd = function (tag) {
 	var decoder = A2(
 		$elm$json$Json$Decode$map,
 		function (msg) {
-			return {b6: msg, cn: false, cr: false};
+			return {ca: msg, cr: false, cv: false};
 		},
 		A2($elm$json$Json$Decode$map, tag, $author$project$Pointer$decodeEventWithOffset));
 	return A2($elm$html$Html$Events$custom, 'touchend', decoder);
@@ -13171,8 +13342,8 @@ var $author$project$Pointer$fromCoordinates = F2(
 		return _Utils_Tuple2(x - x0, y - y0);
 	});
 var $author$project$Pointer$touchCoordinates = function (_v0) {
-	var event = _v0.aS;
-	var targetOffset = _v0.bn;
+	var event = _v0.aY;
+	var targetOffset = _v0.bt;
 	return A2(
 		$elm$core$Maybe$withDefault,
 		_Utils_Tuple2(0, 0),
@@ -13181,19 +13352,19 @@ var $author$project$Pointer$touchCoordinates = function (_v0) {
 			A2(
 				$elm$core$Basics$composeR,
 				function ($) {
-					return $.ci;
+					return $.cm;
 				},
 				$author$project$Pointer$fromCoordinates(targetOffset)),
-			$elm$core$List$head(event.bz)));
+			$elm$core$List$head(event.bD)));
 };
 var $author$project$Pointer$onTouchEndWithPosition = function (a) {
 	return $author$project$Pointer$onTouchEnd(
 		A2($elm$core$Basics$composeR, $author$project$Pointer$touchCoordinates, a));
 };
-var $mpizenberg$elm_pointer_events$Html$Events$Extra$Wheel$defaultOptions = {cn: true, cr: false};
+var $mpizenberg$elm_pointer_events$Html$Events$Extra$Wheel$defaultOptions = {cr: true, cv: false};
 var $mpizenberg$elm_pointer_events$Html$Events$Extra$Wheel$Event = F3(
 	function (mouseEvent, deltaY, deltaMode) {
-		return {bG: deltaMode, bH: deltaY, b7: mouseEvent};
+		return {bK: deltaMode, bL: deltaY, cb: mouseEvent};
 	});
 var $mpizenberg$elm_pointer_events$Html$Events$Extra$Wheel$DeltaLine = 1;
 var $mpizenberg$elm_pointer_events$Html$Events$Extra$Wheel$DeltaPage = 2;
@@ -13226,9 +13397,9 @@ var $mpizenberg$elm_pointer_events$Html$Events$Extra$Wheel$onWithOptions = F2(
 				$elm$json$Json$Decode$map,
 				function (ev) {
 					return {
-						b6: tag(ev),
-						cn: options.cn,
-						cr: options.cr
+						ca: tag(ev),
+						cr: options.cr,
+						cv: options.cv
 					};
 				},
 				$mpizenberg$elm_pointer_events$Html$Events$Extra$Wheel$eventDecoder));
@@ -13236,15 +13407,15 @@ var $mpizenberg$elm_pointer_events$Html$Events$Extra$Wheel$onWithOptions = F2(
 var $mpizenberg$elm_pointer_events$Html$Events$Extra$Wheel$onWheel = $mpizenberg$elm_pointer_events$Html$Events$Extra$Wheel$onWithOptions($mpizenberg$elm_pointer_events$Html$Events$Extra$Wheel$defaultOptions);
 var $author$project$Main$entity = F5(
 	function (camera, perspective, set, scale, block) {
-		var r = block.W.c;
+		var r = block.X.e;
 		var transfrom = A2(
 			$elm_explorations$linear_algebra$Math$Matrix4$mul,
+			$author$project$Shader$rotationToMat(r),
 			A2(
 				$elm_explorations$linear_algebra$Math$Matrix4$mul,
-				$author$project$Shader$rotationToMat(r),
-				$author$project$Shader$rotationToMat(block.s)),
-			A3($elm_explorations$linear_algebra$Math$Matrix4$makeScale3, scale, scale, scale));
-		var p = block.W.h;
+				$author$project$Shader$rotationToMat(block.v),
+				A3($elm_explorations$linear_algebra$Math$Matrix4$makeScale3, scale, scale, scale)));
+		var p = block.X.d;
 		return A4(
 			$elm_explorations$webgl$WebGL$entity,
 			$author$project$Shader$vertexShader,
@@ -13254,17 +13425,17 @@ var $author$project$Main$entity = F5(
 	});
 var $author$project$Main$playerCellToBlock = F3(
 	function (fieldSize, okada, pcell) {
-		var point = pcell.n;
+		var point = pcell.r;
 		var position = A2($author$project$Main$pointToPosition, fieldSize, point);
 		var _v0 = point;
 		var x = _v0.a;
 		var y = _v0.b;
 		var z = _v0.c;
 		return {
-			W: {h: position, c: pcell.c},
-			aD: $elm$core$String$fromInt(x) + (',' + ($elm$core$String$fromInt(y) + (',' + $elm$core$String$fromInt(z)))),
+			X: {d: position, e: pcell.e},
+			aG: $elm$core$String$fromInt(x) + (',' + ($elm$core$String$fromInt(y) + (',' + $elm$core$String$fromInt(z)))),
 			at: okada,
-			s: pcell.s
+			v: pcell.v
 		};
 	});
 var $author$project$Main$playerEntities = F5(
@@ -13296,7 +13467,7 @@ var $author$project$Main$playerEntities = F5(
 								(A2($elm$core$Basics$modBy, 2, i) === 1) ? 0 : 1,
 								pcell));
 					}),
-				player.o));
+				player.n));
 	});
 var $elm$html$Html$Attributes$rel = _VirtualDom_attribute('rel');
 var $elm$html$Html$span = _VirtualDom_node('span');
@@ -13304,9 +13475,6 @@ var $elm$html$Html$Attributes$target = $elm$html$Html$Attributes$stringProperty(
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$core$Basics$not = _Basics_not;
-var $elm$core$Basics$abs = function (n) {
-	return (n < 0) ? (-n) : n;
-};
 var $elm$core$String$foldr = _String_foldr;
 var $elm$core$String$toList = function (string) {
 	return A3($elm$core$String$foldr, $elm$core$List$cons, _List_Nil, string);
@@ -13551,7 +13719,7 @@ var $elm_explorations$webgl$WebGL$toHtml = $elm_explorations$webgl$WebGL$toHtmlW
 			$elm_explorations$webgl$WebGL$antialias,
 			$elm_explorations$webgl$WebGL$depth(1)
 		]));
-var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$defaultOptions = {cn: true, cr: false};
+var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$defaultOptions = {cr: true, cv: false};
 var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onWithOptions = F3(
 	function (event, options, tag) {
 		return A2(
@@ -13561,9 +13729,9 @@ var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onWithOptions = F3(
 				$elm$json$Json$Decode$map,
 				function (ev) {
 					return {
-						b6: tag(ev),
-						cn: options.cn,
-						cr: options.cr
+						ca: tag(ev),
+						cr: options.cr,
+						cv: options.cv
 					};
 				},
 				$mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$eventDecoder));
@@ -13589,9 +13757,9 @@ var $zaboco$elm_draggable$Draggable$touchTriggers = F2(
 					A2(
 						$elm$core$Maybe$map,
 						function ($) {
-							return $.bA;
+							return $.bE;
 						},
-						$elm$core$List$head(touchEvent.bz))));
+						$elm$core$List$head(touchEvent.bD))));
 		};
 		var mouseToEnv = function (internal) {
 			return A2(
@@ -13623,12 +13791,13 @@ var $elm$html$Html$Attributes$width = function (n) {
 		$elm$core$String$fromInt(n));
 };
 var $author$project$Main$view = function (model) {
-	var perspective = $author$project$Main$getPerspective(model.X);
-	var _v0 = model.X;
+	var translateAnimation = A2($author$project$Motion$animatePosition, model.U, model.ay);
+	var perspective = $author$project$Main$getPerspective(model.Y);
+	var _v0 = model.Y;
 	var w = _v0.a;
 	var h = _v0.b;
 	return {
-		o: _List_fromArray(
+		n: _List_fromArray(
 			[
 				A2(
 				$elm$html$Html$div,
@@ -13669,7 +13838,7 @@ var $author$project$Main$view = function (model) {
 										_List_fromArray(
 											[
 												$elm$html$Html$text(
-												$author$project$Main$timeText(model.af))
+												$author$project$Main$timeText(model.U))
 											]))
 									])),
 								A2(
@@ -13682,7 +13851,7 @@ var $author$project$Main$view = function (model) {
 										A2(
 											$elm$core$Basics$composeR,
 											function ($) {
-												return $.b9;
+												return $.cd;
 											},
 											$author$project$Main$ClickMsg)),
 										$author$project$Pointer$onTouchEndWithPosition($author$project$Main$ClickMsg),
@@ -13704,24 +13873,24 @@ var $author$project$Main$view = function (model) {
 												]),
 											A2($zaboco$elm_draggable$Draggable$touchTriggers, 'my-element', $author$project$Main$DragMsg)),
 										_Utils_ap(
-											A4($author$project$Main$fieldEntities, model.t, perspective, model.L.aP, model.w),
+											A5($author$project$Main$fieldEntities, model.o, perspective, model.M.aV, translateAnimation, model.F),
 											_Utils_ap(
-												A4($author$project$Main$fieldLineEntities, model.t, perspective, model.L.aY, model.w),
+												A5($author$project$Main$fieldLineEntities, model.o, perspective, model.M.a2, translateAnimation, model.F),
 												_Utils_ap(
 													A5(
 														$author$project$Main$playerEntities,
-														model.t,
+														model.o,
 														perspective,
-														_Utils_Tuple2(model.L.bb, model.L.ba),
-														$elm$core$Array$length(model.w),
-														model.r),
+														_Utils_Tuple2(model.M.bh, model.M.bg),
+														$elm$core$Array$length(model.F),
+														model.A),
 													A5(
 														$author$project$Main$moveTargetBoxBlockEntities,
-														model.t,
+														model.o,
 														perspective,
-														_Utils_Tuple2(model.L.a1, model.L.a2),
-														model.w,
-														model.r)))))
+														_Utils_Tuple2(model.M.a7, model.M.a8),
+														model.F,
+														model.A)))))
 									])),
 								A2(
 								$elm$html$Html$div,
@@ -13885,10 +14054,10 @@ var $author$project$Main$view = function (model) {
 							]))
 					]))
 			]),
-		cw: '岡田スネーク3D'
+		cA: '岡田スネーク3D'
 	};
 };
 var $author$project$Main$main = $elm$browser$Browser$document(
-	{bP: $author$project$Main$init, cs: $author$project$Main$subscriptions, cy: $author$project$Main$update, cz: $author$project$Main$view});
+	{bT: $author$project$Main$init, cw: $author$project$Main$subscriptions, cC: $author$project$Main$update, cD: $author$project$Main$view});
 _Platform_export({'Main':{'init':$author$project$Main$main(
 	$elm$json$Json$Decode$succeed(0))(0)}});}(this));
