@@ -45,6 +45,7 @@ type alias PlayerCell =
     { point : Grid.Point
     , rotation : Shader.Rotation
     , turning : Shader.Rotation
+    , positionAnimation : Motion.PositionAnimation
     }
 
 
@@ -171,7 +172,12 @@ initModel level =
             initField
 
         player =
-            { head = { point = ( 0, 1, 0 ), rotation = { radian = 0, axis = vec3 0 1 0 }, turning = { radian = 0, axis = vec3 0 1 0 } }
+            { head =
+                { point = ( 0, 1, 0 )
+                , rotation = { radian = 0, axis = vec3 0 1 0 }
+                , turning = { radian = 0, axis = vec3 0 1 0 }
+                , positionAnimation = Motion.staticPositionAnimation (vec3 0 0 0)
+                }
             , body = []
             }
     in
@@ -318,18 +324,67 @@ moveModel moveTo model =
             setCameraToHead nextField nextPlayer camera
 
         positionAnimation =
-            Motion.positionAnimation model.time
+            Motion.positionAnimation
+                model.time
                 300
                 (Vec3.sub
                     (Shader.orbitCamelaPosition camera)
                     (Shader.orbitCamelaPosition nextCamera)
                 )
                 (vec3 0 0 0)
+
+        fieldSize =
+            Grid.length model.field
+
+        nextHead =
+            nextPlayer.head
+
+        beforeBodyArray =
+            Array.fromList model.player.body
+
+        animatedHead =
+            { nextHead
+                | positionAnimation =
+                    Motion.positionAnimation
+                        model.time
+                        300
+                        (Vec3.sub
+                            (pointToPosition fieldSize model.player.head.point)
+                            (pointToPosition fieldSize nextHead.point)
+                        )
+                        (vec3 0 0 0)
+            }
+
+        animatedBody =
+            nextPlayer.body
+                |> List.indexedMap
+                    (\i next ->
+                        let
+                            maybeBefore =
+                                Array.get i beforeBodyArray
+                        in
+                        case maybeBefore of
+                            Just before ->
+                                { next
+                                    | positionAnimation =
+                                        Motion.positionAnimation
+                                            model.time
+                                            300
+                                            (Vec3.sub
+                                                (pointToPosition fieldSize before.point)
+                                                (pointToPosition fieldSize next.point)
+                                            )
+                                            (vec3 0 0 0)
+                                }
+
+                            Nothing ->
+                                next
+                    )
     in
     { model
         | downTime = 0
         , field = nextField
-        , player = nextPlayer
+        , player = { head = animatedHead, body = animatedBody }
         , camera = nextCamera
         , positionAnimation = positionAnimation
     }
@@ -590,8 +645,8 @@ view model =
                                 animatedCamera
                                 perspective
                                 ( model.meshMap.playerHead, model.meshMap.playerBody )
+                                model.time
                                 (Array.length model.field)
-                                translateAnimation
                                 model.player
                             ++ moveTargetBoxBlockEntities
                                 animatedCamera
@@ -877,28 +932,41 @@ playerCellToBlock fieldSize translation okada pcell =
     }
 
 
-playerEntities : Shader.OrbitCamela -> Mat4 -> ( MeshSet, MeshSet ) -> Int -> Mat4 -> Player -> List WebGL.Entity
-playerEntities camera perspective ( headSet, bodySet ) fieldSize translation player =
-    entity camera perspective headSet 1 (playerCellToBlock fieldSize translation Oka player.head)
-        :: (player.body
+playerEntities : Shader.OrbitCamela -> Mat4 -> ( MeshSet, MeshSet ) -> Float -> Int -> Player -> List WebGL.Entity
+playerEntities camera perspective ( headSet, bodySet ) time fieldSize player =
+    let
+        headEntity =
+            entity camera
+                perspective
+                headSet
+                1
+                (playerCellToBlock fieldSize (Motion.animatePosition time player.head.positionAnimation) Oka player.head)
+
+        bodyEntities =
+            player.body
                 |> List.indexedMap
                     (\i pcell ->
+                        let
+                            animated =
+                                Motion.animatePosition time pcell.positionAnimation
+                        in
                         entity camera
                             perspective
                             bodySet
                             0.8
-                            (playerCellToBlock fieldSize
-                                translation
-                                (if modBy 2 i == 1 then
-                                    Oka
-
-                                 else
-                                    Da
-                                )
-                                pcell
-                            )
+                            (playerCellToBlock fieldSize animated (bodyOkada i) pcell)
                     )
-           )
+    in
+    headEntity :: bodyEntities
+
+
+bodyOkada : Int -> Okada
+bodyOkada i =
+    if modBy 2 i == 1 then
+        Oka
+
+    else
+        Da
 
 
 entity : Shader.OrbitCamela -> Mat4 -> MeshSet -> Float -> GeoBlock -> WebGL.Entity
