@@ -2,6 +2,7 @@ module Motion exposing
     ( GeoAnimation
     , PositionAnimation
     , animatePosition
+    , animatePositionVec
     , animateRotate
     , positionAnimation
     , repeatAnimation
@@ -91,8 +92,9 @@ staticPositionAnimation vec =
 
 animatePosition : Float -> PositionAnimation -> Mat4
 animatePosition t animation =
-    let
-        next =
-            vec3 (Animation.animate t animation.x) (Animation.animate t animation.y) (Animation.animate t animation.z)
-    in
-    Mat4.makeTranslate next
+    Mat4.makeTranslate (animatePositionVec t animation)
+
+
+animatePositionVec : Float -> PositionAnimation -> Vec3
+animatePositionVec t animation =
+    vec3 (Animation.animate t animation.x) (Animation.animate t animation.y) (Animation.animate t animation.z)

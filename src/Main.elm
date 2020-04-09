@@ -102,7 +102,6 @@ type alias Model =
     , player : Player
     , camera : Shader.OrbitCamela
     , downTime : Float
-    , positionAnimation : Motion.PositionAnimation
     , drag : Draggable.State String
     , meshMap :
         { default : MeshSet
@@ -187,7 +186,6 @@ initModel level =
     , camera = setCameraToHead field player { radius = cameraRadius level, radianY = pi * 1.4, radianZ = -pi / 8, position = vec3 0 0 0 }
     , size = ( 400, 600 )
     , downTime = 0
-    , positionAnimation = Motion.staticPositionAnimation (vec3 0 0 0)
     , drag = Draggable.init
     , meshMap =
         { default = { oka = okadaMesh defaultColor Oka, da = okadaMesh defaultColor Da }
@@ -238,9 +236,16 @@ update msg model =
             let
                 time =
                     model.time + dt
+
+                headPosition =
+                    pointToPosition (Grid.length model.field) model.player.head.point
+
+                animatedCamera =
+                    { camera | position = Mat4.transform (Motion.animatePosition time model.player.head.positionAnimation) headPosition }
             in
             ( { model
                 | time = time
+                , camera = animatedCamera
                 , player =
                     { head =
                         let
@@ -323,16 +328,6 @@ moveModel moveTo model =
         nextCamera =
             setCameraToHead nextField nextPlayer camera
 
-        positionAnimation =
-            Motion.positionAnimation
-                model.time
-                300
-                (Vec3.sub
-                    (Shader.orbitCamelaPosition camera)
-                    (Shader.orbitCamelaPosition nextCamera)
-                )
-                (vec3 0 0 0)
-
         fieldSize =
             Grid.length model.field
 
@@ -386,7 +381,6 @@ moveModel moveTo model =
         , field = nextField
         , player = { head = animatedHead, body = animatedBody }
         , camera = nextCamera
-        , positionAnimation = positionAnimation
     }
 
 
@@ -525,7 +519,7 @@ getClickedMoveTo model pos =
         direction =
             Vec3.direction destination origin
     in
-    moveTargetBoxBlockList model.field model.player
+    moveTargetBoxBlockList model.time model.field model.player
         |> List.map
             (\( moveTo, geo ) ->
                 let
@@ -563,16 +557,8 @@ view model =
         perspective =
             getPerspective model.size
 
-        translateAnimation =
-            Motion.animatePosition model.time model.positionAnimation
-
         camera =
             model.camera
-
-        animatedCamera =
-            { camera
-                | position = Mat4.transform translateAnimation camera.position
-            }
 
         gameOver =
             isGameOver model
@@ -632,27 +618,27 @@ view model =
                             ++ Draggable.touchTriggers "my-element" DragMsg
                         )
                         (fieldEntities
-                            animatedCamera
+                            model.camera
                             perspective
                             model.meshMap.default
                             model.field
                             ++ fieldLineEntities
-                                animatedCamera
+                                model.camera
                                 perspective
                                 model.meshMap.line
                                 model.field
                             ++ playerEntities
-                                animatedCamera
+                                model.camera
                                 perspective
                                 ( model.meshMap.playerHead, model.meshMap.playerBody )
                                 model.time
                                 (Array.length model.field)
                                 model.player
                             ++ moveTargetBoxBlockEntities
-                                animatedCamera
+                                model.time
+                                model.camera
                                 perspective
                                 ( model.meshMap.moveTargetBox, model.meshMap.moveTargetBoxLine )
-                                translateAnimation
                                 model.field
                                 model.player
                         )
@@ -729,22 +715,22 @@ cellSize =
 
 
 moveTargetBoxBlockEntities :
-    Shader.OrbitCamela
+    Float
+    -> Shader.OrbitCamela
     -> Mat4
     -> ( Mesh Shader.Vertex, Mesh Shader.Vertex )
-    -> Mat4
     -> Grid Cell
     -> Player
     -> List WebGL.Entity
-moveTargetBoxBlockEntities camera perspective ( mesh, linesMesh ) translation field player =
-    moveTargetBoxBlockList field player
+moveTargetBoxBlockEntities time camera perspective ( mesh, linesMesh ) field player =
+    moveTargetBoxBlockList time field player
         |> List.map
             (\( _, geo ) ->
                 let
                     uni =
                         Shader.uniforms camera
                             perspective
-                            (Mat4.transform translation geo.position)
+                            geo.position
                             (Shader.rotationToMat geo.rotation)
                 in
                 [ WebGL.entity Shader.vertexShader Shader.fragmentShader mesh uni
@@ -754,14 +740,21 @@ moveTargetBoxBlockEntities camera perspective ( mesh, linesMesh ) translation fi
         |> List.concat
 
 
-moveTargetBoxBlockList : Grid Cell -> Player -> List ( MoveTo, Shader.Geo )
-moveTargetBoxBlockList field player =
-    [ moveTargetBoxBlock field player ( Xplus, { position = vec3 -0.5 0 0, rotation = { radian = pi / 2, axis = vec3 0 -1 0 } } )
-    , moveTargetBoxBlock field player ( Xminus, { position = vec3 0.5 0 0, rotation = { radian = pi / 2, axis = vec3 0 1 0 } } )
-    , moveTargetBoxBlock field player ( Yplus, { position = vec3 0 -0.5 0, rotation = { radian = pi / 2, axis = vec3 1 0 0 } } )
-    , moveTargetBoxBlock field player ( Yminus, { position = vec3 0 0.5 0, rotation = { radian = pi / 2, axis = vec3 -1 0 0 } } )
-    , moveTargetBoxBlock field player ( Zplus, { position = vec3 0 0 -0.5, rotation = { radian = pi, axis = vec3 0 1 0 } } )
-    , moveTargetBoxBlock field player ( Zminus, { position = vec3 0 0 0.5, rotation = { radian = 0, axis = vec3 0 1 0 } } )
+moveTargetBoxBlockList : Float -> Grid Cell -> Player -> List ( MoveTo, Shader.Geo )
+moveTargetBoxBlockList time field player =
+    let
+        diff =
+            Motion.animatePositionVec time player.head.positionAnimation
+
+        slide v =
+            Vec3.add v diff
+    in
+    [ moveTargetBoxBlock field player ( Xplus, { position = slide (vec3 -0.5 0 0), rotation = { radian = pi / 2, axis = vec3 0 -1 0 } } )
+    , moveTargetBoxBlock field player ( Xminus, { position = slide (vec3 0.5 0 0), rotation = { radian = pi / 2, axis = vec3 0 1 0 } } )
+    , moveTargetBoxBlock field player ( Yplus, { position = slide (vec3 0 -0.5 0), rotation = { radian = pi / 2, axis = vec3 1 0 0 } } )
+    , moveTargetBoxBlock field player ( Yminus, { position = slide (vec3 0 0.5 0), rotation = { radian = pi / 2, axis = vec3 -1 0 0 } } )
+    , moveTargetBoxBlock field player ( Zplus, { position = slide (vec3 0 0 -0.5), rotation = { radian = pi, axis = vec3 0 1 0 } } )
+    , moveTargetBoxBlock field player ( Zminus, { position = slide (vec3 0 0 0.5), rotation = { radian = 0, axis = vec3 0 1 0 } } )
     ]
         |> Maybe.Extra.values
 
@@ -1062,7 +1055,7 @@ button attrs children =
 
 isGameOver : Model -> Bool
 isGameOver model =
-    List.length (moveTargetBoxBlockList model.field model.player) == 0
+    List.length (moveTargetBoxBlockList model.time model.field model.player) == 0
 
 
 score : Model -> Int
