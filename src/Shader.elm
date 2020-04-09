@@ -93,10 +93,8 @@ cameraLootAk camera =
 orbitCamelaRotation : OrbitCamela -> Mat4
 orbitCamelaRotation camera =
     Mat4.makeRotate camera.radianZ (vec3 1 0 0)
-        |> Mat4.mul
-            (Mat4.makeRotate camera.radianY (vec3 0 1 0))
-        |> Mat4.mul
-            (Mat4.makeTranslate camera.position)
+        |> Mat4.mul (Mat4.makeRotate camera.radianY (vec3 0 1 0))
+        |> Mat4.mul (Mat4.makeTranslate camera.position)
 
 
 orbitCamelaPosition : OrbitCamela -> Vec3

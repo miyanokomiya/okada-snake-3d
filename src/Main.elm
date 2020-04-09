@@ -1,6 +1,5 @@
 module Main exposing (main)
 
-import Animation
 import Array
 import Asset
 import Block
@@ -183,7 +182,7 @@ initModel level =
     { time = 0
     , field = field
     , player = player
-    , camera = setCameraToHead field player { radius = cameraRadius level, radianY = pi * 1.4, radianZ = -pi / 8, position = vec3 0 0 0 }
+    , camera = setCameraToHead player { radius = cameraRadius level, radianY = pi * 1.4, radianZ = -pi / 8, position = vec3 0 0 0 }
     , size = ( 400, 600 )
     , downTime = 0
     , drag = Draggable.init
@@ -238,7 +237,7 @@ update msg model =
                     model.time + dt
 
                 headPosition =
-                    pointToPosition (Grid.length model.field) model.player.head.point
+                    pointToPosition model.player.head.point
 
                 animatedCamera =
                     { camera | position = Mat4.transform (Motion.animatePosition time model.player.head.positionAnimation) headPosition }
@@ -326,10 +325,7 @@ moveModel moveTo model =
             moveAndEat moveTo model.field model.player
 
         nextCamera =
-            setCameraToHead nextField nextPlayer camera
-
-        fieldSize =
-            Grid.length model.field
+            setCameraToHead nextPlayer camera
 
         nextHead =
             nextPlayer.head
@@ -344,8 +340,8 @@ moveModel moveTo model =
                         model.time
                         300
                         (Vec3.sub
-                            (pointToPosition fieldSize model.player.head.point)
-                            (pointToPosition fieldSize nextHead.point)
+                            (pointToPosition model.player.head.point)
+                            (pointToPosition nextHead.point)
                         )
                         (vec3 0 0 0)
             }
@@ -366,8 +362,8 @@ moveModel moveTo model =
                                             model.time
                                             300
                                             (Vec3.sub
-                                                (pointToPosition fieldSize before.point)
-                                                (pointToPosition fieldSize next.point)
+                                                (pointToPosition before.point)
+                                                (pointToPosition next.point)
                                             )
                                             (vec3 0 0 0)
                                 }
@@ -384,9 +380,9 @@ moveModel moveTo model =
     }
 
 
-setCameraToHead : Grid Cell -> Player -> Shader.OrbitCamela -> Shader.OrbitCamela
-setCameraToHead field player camera =
-    { camera | position = pointToPosition (Grid.length field) player.head.point }
+setCameraToHead : Player -> Shader.OrbitCamela -> Shader.OrbitCamela
+setCameraToHead player camera =
+    { camera | position = pointToPosition player.head.point }
 
 
 tailOkada : Player -> Okada
@@ -557,9 +553,6 @@ view model =
         perspective =
             getPerspective model.size
 
-        camera =
-            model.camera
-
         gameOver =
             isGameOver model
     in
@@ -632,7 +625,6 @@ view model =
                                 perspective
                                 ( model.meshMap.playerHead, model.meshMap.playerBody )
                                 model.time
-                                (Array.length model.field)
                                 model.player
                             ++ moveTargetBoxBlockEntities
                                 model.time
@@ -704,11 +696,6 @@ view model =
     }
 
 
-timeText : Float -> String
-timeText time =
-    Round.round 1 (time / 1000)
-
-
 cellSize : Float
 cellSize =
     1.3
@@ -766,7 +753,7 @@ moveTargetBoxBlock field player ( moveTo, geo ) =
             move moveTo player
 
         position =
-            pointToPosition (Grid.length field) next.head.point
+            pointToPosition next.head.point
     in
     if validMove field player next then
         Just
@@ -780,25 +767,21 @@ moveTargetBoxBlock field player ( moveTo, geo ) =
         Nothing
 
 
-pointToPosition : Int -> Grid.Point -> Vec3
-pointToPosition lineSize ( x, y, z ) =
-    let
-        slide =
-            (toFloat lineSize - 1) / 2
-    in
-    vec3 (cellSize * (toFloat x - slide))
-        (cellSize * (toFloat y - slide))
-        (cellSize * (toFloat z - slide))
+pointToPosition : Grid.Point -> Vec3
+pointToPosition ( x, y, z ) =
+    vec3 (cellSize * toFloat x)
+        (cellSize * toFloat y)
+        (cellSize * toFloat z)
 
 
-cellToBlock : Int -> Grid.Point -> Cell -> Maybe GeoBlock
-cellToBlock lineSize point cell =
+cellToBlock : Grid.Point -> Cell -> Maybe GeoBlock
+cellToBlock point cell =
     let
         ( x, y, z ) =
             point
 
         position =
-            pointToPosition lineSize point
+            pointToPosition point
     in
     case cell of
         Food okada rotation turning ->
@@ -846,7 +829,7 @@ fieldLineEntities camera perspective mesh grid =
                         (toFloat lineSize * cellSize)
                         { position =
                             Vec3.sub
-                                (pointToPosition lineSize ( 0, b, a ))
+                                (pointToPosition ( 0, b, a ))
                                 slide
                         , rotation = { radian = -pi / 2, axis = vec3 0 0 1 }
                         }
@@ -861,7 +844,7 @@ fieldLineEntities camera perspective mesh grid =
                         (toFloat lineSize * cellSize)
                         { position =
                             Vec3.sub
-                                (pointToPosition lineSize ( b, 0, a ))
+                                (pointToPosition ( b, 0, a ))
                                 slide
                         , rotation = { radian = -pi / 2, axis = vec3 0 1 0 }
                         }
@@ -876,7 +859,7 @@ fieldLineEntities camera perspective mesh grid =
                         (toFloat lineSize * cellSize)
                         { position =
                             Vec3.sub
-                                (pointToPosition lineSize ( a, b, 0 ))
+                                (pointToPosition ( a, b, 0 ))
                                 slide
                         , rotation = { radian = pi / 2, axis = vec3 1 0 0 }
                         }
@@ -887,14 +870,10 @@ fieldLineEntities camera perspective mesh grid =
 
 fieldEntities : Shader.OrbitCamela -> Mat4 -> MeshSet -> Grid Cell -> List WebGL.Entity
 fieldEntities camera perspective set grid =
-    let
-        lineSize =
-            Grid.length grid
-    in
     Grid.toList grid
         |> List.map
             (\( point, cell ) ->
-                cellToBlock lineSize point cell
+                cellToBlock point cell
             )
         |> Maybe.Extra.values
         |> List.map
@@ -903,8 +882,8 @@ fieldEntities camera perspective set grid =
             )
 
 
-playerCellToBlock : Int -> Mat4 -> Okada -> PlayerCell -> GeoBlock
-playerCellToBlock fieldSize translation okada pcell =
+playerCellToBlock : Mat4 -> Okada -> PlayerCell -> GeoBlock
+playerCellToBlock translation okada pcell =
     let
         point =
             pcell.point
@@ -913,7 +892,7 @@ playerCellToBlock fieldSize translation okada pcell =
             point
 
         position =
-            pointToPosition fieldSize point
+            pointToPosition point
     in
     { id = String.fromInt x ++ "," ++ String.fromInt y ++ "," ++ String.fromInt z
     , okada = okada
@@ -925,15 +904,15 @@ playerCellToBlock fieldSize translation okada pcell =
     }
 
 
-playerEntities : Shader.OrbitCamela -> Mat4 -> ( MeshSet, MeshSet ) -> Float -> Int -> Player -> List WebGL.Entity
-playerEntities camera perspective ( headSet, bodySet ) time fieldSize player =
+playerEntities : Shader.OrbitCamela -> Mat4 -> ( MeshSet, MeshSet ) -> Float -> Player -> List WebGL.Entity
+playerEntities camera perspective ( headSet, bodySet ) time player =
     let
         headEntity =
             entity camera
                 perspective
                 headSet
                 1
-                (playerCellToBlock fieldSize (Motion.animatePosition time player.head.positionAnimation) Oka player.head)
+                (playerCellToBlock (Motion.animatePosition time player.head.positionAnimation) Oka player.head)
 
         bodyEntities =
             player.body
@@ -947,7 +926,7 @@ playerEntities camera perspective ( headSet, bodySet ) time fieldSize player =
                             perspective
                             bodySet
                             0.8
-                            (playerCellToBlock fieldSize animated (bodyOkada i) pcell)
+                            (playerCellToBlock animated (bodyOkada i) pcell)
                     )
     in
     headEntity :: bodyEntities
