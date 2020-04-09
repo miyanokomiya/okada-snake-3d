@@ -107,6 +107,7 @@ type alias Model =
         , playerHead : MeshSet
         , playerBody : MeshSet
         , line : Mesh Shader.Vertex
+        , hilightLine : Mesh Shader.Vertex
         , moveTargetBox : Mesh Shader.Vertex
         , moveTargetBoxLine : Mesh Shader.Vertex
         }
@@ -190,7 +191,8 @@ initModel level =
         { default = { oka = okadaMesh defaultColor Oka, da = okadaMesh defaultColor Da }
         , playerHead = { oka = okadaMesh playerHeadColor Oka, da = okadaMesh playerHeadColor Da }
         , playerBody = { oka = okadaMesh playerBodyColor Oka, da = okadaMesh playerBodyColor Da }
-        , line = Block.meshUnitLine
+        , line = Block.meshUnitLine (vec3 0 0 0)
+        , hilightLine = Block.meshUnitLine (vec3 255 0 0)
         , moveTargetBox = Block.meshCube
         , moveTargetBoxLine = Block.meshCubeLine
         }
@@ -618,7 +620,8 @@ view model =
                             ++ fieldLineEntities
                                 model.camera
                                 perspective
-                                model.meshMap.line
+                                ( model.meshMap.line, model.meshMap.hilightLine )
+                                model.player.head.point
                                 model.field
                             ++ playerEntities
                                 model.camera
@@ -796,8 +799,8 @@ cellToBlock point cell =
             Nothing
 
 
-fieldLineEntities : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex -> Grid Cell -> List WebGL.Entity
-fieldLineEntities camera perspective mesh grid =
+fieldLineEntities : Shader.OrbitCamela -> Mat4 -> ( Mesh Shader.Vertex, Mesh Shader.Vertex ) -> Grid.Point -> Grid Cell -> List WebGL.Entity
+fieldLineEntities camera perspective ( mesh, hilightMesh ) ( hx, hy, hz ) grid =
     let
         lineSize =
             Grid.length grid
@@ -820,13 +823,33 @@ fieldLineEntities camera perspective mesh grid =
                 |> Array.toList
                 |> List.concat
 
+        inRange a b =
+            List.member a [ b, b + 1 ]
+
+        isHilight ( p, q ) ( s, t ) =
+            inRange p s && inRange q t
+
+        lineMesh m n =
+            if isHilight m n then
+                hilightMesh
+
+            else
+                mesh
+
+        lineScale m n =
+            if isHilight m n then
+                vec3 18  (toFloat lineSize * cellSize) 18
+
+            else
+                vec3 2 (toFloat lineSize * cellSize) 2
+
         xlines =
             planeMap
                 (\( a, b ) ->
                     lineEntity camera
                         perspective
-                        mesh
-                        (toFloat lineSize * cellSize)
+                        (lineMesh ( b, a ) ( hy, hz ))
+                        (lineScale ( b, a ) ( hy, hz ))
                         { position =
                             Vec3.sub
                                 (pointToPosition ( 0, b, a ))
@@ -840,8 +863,8 @@ fieldLineEntities camera perspective mesh grid =
                 (\( a, b ) ->
                     lineEntity camera
                         perspective
-                        mesh
-                        (toFloat lineSize * cellSize)
+                        (lineMesh ( b, a ) ( hx, hz ))
+                        (lineScale ( b, a ) ( hx, hz ))
                         { position =
                             Vec3.sub
                                 (pointToPosition ( b, 0, a ))
@@ -855,8 +878,8 @@ fieldLineEntities camera perspective mesh grid =
                 (\( a, b ) ->
                     lineEntity camera
                         perspective
-                        mesh
-                        (toFloat lineSize * cellSize)
+                        (lineMesh ( a, b ) ( hx, hy ))
+                        (lineScale ( a, b ) ( hx, hy ))
                         { position =
                             Vec3.sub
                                 (pointToPosition ( a, b, 0 ))
@@ -980,7 +1003,7 @@ frontEntity camera perspective set scale block =
         (Shader.uniforms camera perspective p transfrom)
 
 
-lineEntity : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex -> Float -> Shader.Geo -> WebGL.Entity
+lineEntity : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex -> Vec3 -> Shader.Geo -> WebGL.Entity
 lineEntity camera perspective mesh size geo =
     let
         p =
@@ -990,7 +1013,7 @@ lineEntity camera perspective mesh size geo =
             geo.rotation
 
         transform =
-            Mat4.makeScale3 size size size
+            Mat4.makeScale size
                 |> Mat4.mul (Shader.rotationToMat r)
     in
     WebGL.entity

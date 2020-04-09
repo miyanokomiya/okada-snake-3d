@@ -41,11 +41,11 @@ mesh list =
         |> WebGL.triangles
 
 
-meshUnitLine : Mesh Shader.Vertex
-meshUnitLine =
+meshUnitLine : Vec3 -> Mesh Shader.Vertex
+meshUnitLine color =
     (Asset.unitLine
         |> List.concat
-        |> List.map (\tri -> ( tri, Vec3.vec3 0 0 0 ))
+        |> List.map (\tri -> ( tri, color ))
     )
         |> mesh
 
