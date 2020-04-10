@@ -110,6 +110,7 @@ type alias Model =
         , hilightLine : Mesh Shader.Vertex
         , moveTargetBox : Mesh Shader.Vertex
         , moveTargetBoxLine : Mesh Shader.Vertex
+        , connectorLine : Mesh Shader.Vertex
         }
     }
 
@@ -195,6 +196,7 @@ initModel level =
         , hilightLine = Block.meshUnitLine (vec3 255 0 0)
         , moveTargetBox = Block.meshCube
         , moveTargetBoxLine = Block.meshCubeLine
+        , connectorLine = Block.meshUnitLine (vec3 200 150 25)
         }
     }
 
@@ -317,6 +319,11 @@ update msg model =
             )
 
 
+movingTime : Float
+movingTime =
+    100
+
+
 moveModel : MoveTo -> Model -> Model
 moveModel moveTo model =
     let
@@ -340,7 +347,7 @@ moveModel moveTo model =
                 | positionAnimation =
                     Motion.positionAnimation
                         model.time
-                        300
+                        movingTime
                         (Vec3.sub
                             (pointToPosition model.player.head.point)
                             (pointToPosition nextHead.point)
@@ -362,7 +369,7 @@ moveModel moveTo model =
                                     | positionAnimation =
                                         Motion.positionAnimation
                                             model.time
-                                            300
+                                            movingTime
                                             (Vec3.sub
                                                 (pointToPosition before.point)
                                                 (pointToPosition next.point)
@@ -626,7 +633,7 @@ view model =
                             ++ playerEntities
                                 model.camera
                                 perspective
-                                ( model.meshMap.playerHead, model.meshMap.playerBody )
+                                ( model.meshMap.playerHead, model.meshMap.playerBody, model.meshMap.connectorLine )
                                 model.time
                                 model.player
                             ++ moveTargetBoxBlockEntities
@@ -838,7 +845,7 @@ fieldLineEntities camera perspective ( mesh, hilightMesh ) ( hx, hy, hz ) grid =
 
         lineScale m n =
             if isHilight m n then
-                vec3 18  (toFloat lineSize * cellSize) 18
+                vec3 12 (toFloat lineSize * cellSize) 12
 
             else
                 vec3 2 (toFloat lineSize * cellSize) 2
@@ -927,32 +934,47 @@ playerCellToBlock translation okada pcell =
     }
 
 
-playerEntities : Shader.OrbitCamela -> Mat4 -> ( MeshSet, MeshSet ) -> Float -> Player -> List WebGL.Entity
-playerEntities camera perspective ( headSet, bodySet ) time player =
+playerEntities : Shader.OrbitCamela -> Mat4 -> ( MeshSet, MeshSet, Mesh Shader.Vertex ) -> Float -> Player -> List WebGL.Entity
+playerEntities camera perspective ( headSet, bodySet, connectorMesh ) time player =
     let
-        headEntity =
-            entity camera
-                perspective
-                headSet
-                1
-                (playerCellToBlock (Motion.animatePosition time player.head.positionAnimation) Oka player.head)
-
-        bodyEntities =
-            player.body
+        cellEntities =
+            player.head
+                :: player.body
                 |> List.indexedMap
                     (\i pcell ->
                         let
                             animated =
                                 Motion.animatePosition time pcell.positionAnimation
+
+                            block =
+                                playerCellToBlock animated (bodyOkada (i + 1)) pcell
+
+                            ( meshSet, scale ) =
+                                if i == 0 then
+                                    ( headSet, 1 )
+
+                                else
+                                    ( bodySet, 0.8 )
                         in
                         entity camera
                             perspective
-                            bodySet
-                            0.8
-                            (playerCellToBlock animated (bodyOkada i) pcell)
+                            meshSet
+                            scale
+                            block
+                            :: (if i < List.length player.body then
+                                    [ connectorEntity camera
+                                        perspective
+                                        connectorMesh
+                                        block
+                                    ]
+
+                                else
+                                    []
+                               )
                     )
+                |> List.concat
     in
-    headEntity :: bodyEntities
+    cellEntities
 
 
 bodyOkada : Int -> Okada
@@ -962,6 +984,27 @@ bodyOkada i =
 
     else
         Da
+
+
+connectorEntity : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex -> GeoBlock -> WebGL.Entity
+connectorEntity camera perspective mesh block =
+    let
+        p =
+            block.geo.position
+
+        r =
+            block.geo.rotation
+
+        transfrom =
+            Mat4.makeScale3 200 -cellSize 50
+                |> Mat4.mul (Shader.rotationToMat block.turning)
+                |> Mat4.mul (Shader.rotationToMat r)
+    in
+    WebGL.entity
+        Shader.vertexShader
+        Shader.fragmentShader
+        mesh
+        (Shader.uniforms camera perspective p transfrom)
 
 
 entity : Shader.OrbitCamela -> Mat4 -> MeshSet -> Float -> GeoBlock -> WebGL.Entity

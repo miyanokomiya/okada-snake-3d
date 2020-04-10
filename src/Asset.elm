@@ -77,25 +77,25 @@ unitLine =
             0.001
 
         a1 =
-            vec3 0 0 size
+            vec3 -size 0 size
 
         a2 =
             vec3 size 0 size
 
         a3 =
-            vec3 0 1 size
+            vec3 -size 1 size
 
         a4 =
             vec3 size 1 size
 
         b1 =
-            vec3 0 0 -size
+            vec3 -size 0 -size
 
         b2 =
             vec3 size 0 -size
 
         b3 =
-            vec3 0 1 -size
+            vec3 -size 1 -size
 
         b4 =
             vec3 size 1 -size
