@@ -17,7 +17,7 @@ import Math.Vector3 as Vec3 exposing (Vec3, vec3)
 import Maybe.Extra
 import Motion
 import Pointer
-import Round
+import Random
 import Shader
 import WebGL exposing (Mesh)
 
@@ -50,17 +50,7 @@ type alias PlayerCell =
 
 initField : Grid Cell
 initField =
-    Grid.initialize 4
-        (\( x, y, z ) ->
-            if modBy 5 (x + y + z) == 0 then
-                Food Oka { radian = 0, axis = vec3 0 1 0 } { radian = 0, axis = vec3 0 1 0 }
-
-            else if modBy 5 (x + y + z) == 2 then
-                Food Da { radian = 0, axis = vec3 0 1 0 } { radian = 0, axis = vec3 0 1 0 }
-
-            else
-                Empty
-        )
+    Grid.repeat 3 Empty
 
 
 type alias Player =
@@ -132,6 +122,7 @@ type Msg
     | Move MoveTo
     | ClickMsg ( Float, Float )
     | Zoom Wheel.Event
+    | Spawn Grid.Point
 
 
 dragConfig : Draggable.Config String Msg
@@ -291,23 +282,40 @@ update msg model =
                     maybeMoveTo =
                         getClickedMoveTo model ( (x * 2) / toFloat width - 1, 1 - y / toFloat height * 2 )
 
-                    nextModel =
+                    movedModel =
                         case maybeMoveTo of
                             Just moveTo ->
                                 moveModel moveTo model
 
                             Nothing ->
                                 model
+
+                    nextModel =
+                        { movedModel | downTime = 0 }
                 in
-                ( { nextModel | downTime = 0 }
-                , Cmd.none
+                ( nextModel
+                , if model.player == nextModel.player then
+                    Cmd.none
+
+                  else
+                    generateSpreadCmd nextModel
                 )
 
             else
                 ( { model | downTime = 0 }, Cmd.none )
 
         Move moveTo ->
-            ( moveModel moveTo model, Cmd.none )
+            let
+                nextModel =
+                    moveModel moveTo model
+            in
+            ( nextModel
+            , if model.player == nextModel.player then
+                Cmd.none
+
+              else
+                generateSpreadCmd nextModel
+            )
 
         Zoom event ->
             let
@@ -317,6 +325,49 @@ update msg model =
             ( { model | camera = { camera | radius = max radius 4 } }
             , Cmd.none
             )
+
+        Spawn point ->
+            ( { model | field = spawn point model.player model.field }, Cmd.none )
+
+
+generateSpreadCmd : Model -> Cmd Msg
+generateSpreadCmd model =
+    Random.generate Spawn (randomPointGenerator (Grid.length model.field))
+
+
+randomPointGenerator : Int -> Random.Generator Grid.Point
+randomPointGenerator gridSize =
+    Random.map3
+        (\x y z -> ( x, y, z ))
+        (Random.int 0 gridSize)
+        (Random.int 0 gridSize)
+        (Random.int 0 gridSize)
+
+
+spawn : Grid.Point -> Player -> Grid Cell -> Grid Cell
+spawn point player field =
+    let
+        maybeCurrentCell =
+            Grid.get point field
+    in
+    case maybeCurrentCell of
+        Nothing ->
+            field
+
+        Just currentCell ->
+            let
+                playerPoints =
+                    player.head :: player.body |> List.map (\c -> c.point)
+            in
+            if List.member point playerPoints || currentCell /= Empty then
+                field
+
+            else
+                let
+                    okada =
+                        tailNotOkada player
+                in
+                Grid.set point (Food okada { radian = 0, axis = vec3 0 1 0 } { radian = 0, axis = vec3 0 1 0 }) field
 
 
 movingTime : Float
@@ -401,6 +452,15 @@ tailOkada player =
 
     else
         Da
+
+
+tailNotOkada : Player -> Okada
+tailNotOkada player =
+    if tailOkada player == Oka then
+        Da
+
+    else
+        Oka
 
 
 moveAndEat : MoveTo -> Grid Cell -> Player -> ( Grid Cell, Player )
@@ -504,7 +564,11 @@ move moveTo player =
                     ( ( 0, 0, -1 ), { radian = pi / 2, axis = vec3 -1 0 0 } )
 
         body =
-            head :: List.take (List.length player.body - 1) player.body
+            if List.length player.body == 0 then
+                []
+
+            else
+                head :: List.take (List.length player.body - 1) player.body
     in
     { player
         | head = { head | point = plus player.head.point dif, rotation = rotation }
