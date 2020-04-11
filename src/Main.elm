@@ -36,7 +36,7 @@ type alias GeoBlock =
 
 
 type Cell
-    = Food Okada Shader.Rotation Shader.Rotation
+    = Food Okada
     | Empty
 
 
@@ -367,7 +367,7 @@ spawn point player field =
                     okada =
                         tailNotOkada player
                 in
-                Grid.set point (Food okada { radian = 0, axis = vec3 0 1 0 } { radian = 0, axis = vec3 0 1 0 }) field
+                Grid.set point (Food okada) field
 
 
 movingTime : Float
@@ -477,7 +477,7 @@ moveAndEat moveTo field player =
         case maybeCell of
             Just cell ->
                 case cell of
-                    Food _ _ _ ->
+                    Food _ ->
                         ( Grid.set movedPlayer.head.point Empty field
                         , { movedPlayer | body = player.head :: player.body }
                         )
@@ -523,7 +523,7 @@ validMove field before after =
         && (case maybeCell of
                 Just cell ->
                     case cell of
-                        Food okada _ _ ->
+                        Food okada ->
                             okada /= tail
 
                         _ ->
@@ -856,14 +856,17 @@ cellToBlock point cell =
 
         position =
             pointToPosition point
+
+        staticRotation =
+            { radian = 0, axis = vec3 0 1 0 }
     in
     case cell of
-        Food okada rotation turning ->
+        Food okada ->
             Just
                 { id = String.fromInt x ++ "," ++ String.fromInt y ++ "," ++ String.fromInt z
                 , okada = okada
-                , geo = { position = position, rotation = rotation }
-                , turning = turning
+                , geo = { position = position, rotation = staticRotation }
+                , turning = staticRotation
                 }
 
         _ ->
