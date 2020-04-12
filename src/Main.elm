@@ -594,6 +594,9 @@ validMove field before after =
                         Food okada ->
                             okada /= tail
 
+                        Obstacle ->
+                            False
+
                         _ ->
                             True
 
