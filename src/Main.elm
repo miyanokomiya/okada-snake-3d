@@ -127,7 +127,6 @@ type Msg
     | Delta Float
     | OnDragBy Draggable.Delta
     | DragMsg (Draggable.Msg String)
-    | Move MoveTo
     | ClickMsg ( Float, Float )
     | Zoom Wheel.Event
     | Spawn Grid.Point
@@ -302,7 +301,19 @@ update msg model =
 
                     expandedModel =
                         if score movedModel == nextExpand movedModel then
-                            { movedModel | field = Grid.expand Empty movedModel.field }
+                            { movedModel
+                                | field =
+                                    Grid.expand Empty movedModel.field
+                                        |> Grid.map
+                                            (\( _, cell ) ->
+                                                if cell == Obstacle then
+                                                    Empty
+
+                                                else
+                                                    cell
+                                            )
+                                , player = { head = movedModel.player.head, body = [] }
+                            }
 
                         else
                             movedModel
@@ -331,32 +342,6 @@ update msg model =
 
             else
                 ( { model | downTime = 0 }, Cmd.none )
-
-        Move moveTo ->
-            let
-                movedModel =
-                    moveModel moveTo model
-
-                moved =
-                    model.player /= movedModel.player
-
-                nextModel =
-                    { movedModel
-                        | step =
-                            if moved then
-                                movedModel.step + 1
-
-                            else
-                                movedModel.step
-                    }
-            in
-            ( nextModel
-            , if moved then
-                generateSpreadCmd nextModel
-
-              else
-                Cmd.none
-            )
 
         Zoom event ->
             let
@@ -796,32 +781,6 @@ view model =
                             [ Html.Events.onClick Reset
                             ]
                             [ Html.text "RESET" ]
-                        ]
-                    , Html.div []
-                        [ button
-                            [ Html.Events.onClick (Move Xplus)
-                            ]
-                            [ Html.text "X+" ]
-                        , button
-                            [ Html.Events.onClick (Move Xminus)
-                            ]
-                            [ Html.text "X-" ]
-                        , button
-                            [ Html.Events.onClick (Move Yplus)
-                            ]
-                            [ Html.text "Y+" ]
-                        , button
-                            [ Html.Events.onClick (Move Yminus)
-                            ]
-                            [ Html.text "Y-" ]
-                        , button
-                            [ Html.Events.onClick (Move Zplus)
-                            ]
-                            [ Html.text "Z+" ]
-                        , button
-                            [ Html.Events.onClick (Move Zminus)
-                            ]
-                            [ Html.text "Z-" ]
                         ]
                     ]
                 , Html.div
@@ -1286,12 +1245,13 @@ nextExpand model =
         size =
             Grid.length model.field
     in
-    size * (size - 1)
+    (size * (size - 1) * (size - 2))
+        - ((size - 1) * (size - 2) * (size - 3))
 
 
 currentLevel : Model -> Int
 currentLevel model =
-    round (toFloat (Grid.length model.field - 3) / 2) + 1
+    Grid.length model.field - 2
 
 
 viewGameOver : Html Msg
