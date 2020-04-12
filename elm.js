@@ -10808,7 +10808,7 @@ var $author$project$Main$initModel = function (level) {
 	};
 	var field = $author$project$Main$initField;
 	return {
-		q: A2(
+		r: A2(
 			$author$project$Main$setCameraToHead,
 			player,
 			{
@@ -10819,7 +10819,7 @@ var $author$project$Main$initModel = function (level) {
 			}),
 		N: 0,
 		aE: $zaboco$elm_draggable$Draggable$init,
-		r: field,
+		p: field,
 		z: {
 			aT: $author$project$Block$meshUnitLine(
 				A3($elm_explorations$linear_algebra$Math$Vector3$vec3, 200, 150, 25)),
@@ -11530,6 +11530,148 @@ var $zaboco$elm_draggable$Draggable$basicConfig = function (onDragByListener) {
 		});
 };
 var $author$project$Main$dragConfig = $zaboco$elm_draggable$Draggable$basicConfig($author$project$Main$OnDragBy);
+var $elm$core$Array$length = function (_v0) {
+	var len = _v0.a;
+	return len;
+};
+var $author$project$Grid$length = function (grid) {
+	return $elm$core$Array$length(grid);
+};
+var $elm$core$Elm$JsArray$map = _JsArray_map;
+var $elm$core$Array$map = F2(
+	function (func, _v0) {
+		var len = _v0.a;
+		var startShift = _v0.b;
+		var tree = _v0.c;
+		var tail = _v0.d;
+		var helper = function (node) {
+			if (!node.$) {
+				var subTree = node.a;
+				return $elm$core$Array$SubTree(
+					A2($elm$core$Elm$JsArray$map, helper, subTree));
+			} else {
+				var values = node.a;
+				return $elm$core$Array$Leaf(
+					A2($elm$core$Elm$JsArray$map, func, values));
+			}
+		};
+		return A4(
+			$elm$core$Array$Array_elm_builtin,
+			len,
+			startShift,
+			A2($elm$core$Elm$JsArray$map, helper, tree),
+			A2($elm$core$Elm$JsArray$map, func, tail));
+	});
+var $elm$core$Elm$JsArray$push = _JsArray_push;
+var $elm$core$Bitwise$and = _Bitwise_and;
+var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
+var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
+var $elm$core$Basics$ge = _Utils_ge;
+var $elm$core$Elm$JsArray$singleton = _JsArray_singleton;
+var $elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
+var $elm$core$Elm$JsArray$unsafeSet = _JsArray_unsafeSet;
+var $elm$core$Array$insertTailInTree = F4(
+	function (shift, index, tail, tree) {
+		var pos = $elm$core$Array$bitMask & (index >>> shift);
+		if (_Utils_cmp(
+			pos,
+			$elm$core$Elm$JsArray$length(tree)) > -1) {
+			if (shift === 5) {
+				return A2(
+					$elm$core$Elm$JsArray$push,
+					$elm$core$Array$Leaf(tail),
+					tree);
+			} else {
+				var newSub = $elm$core$Array$SubTree(
+					A4($elm$core$Array$insertTailInTree, shift - $elm$core$Array$shiftStep, index, tail, $elm$core$Elm$JsArray$empty));
+				return A2($elm$core$Elm$JsArray$push, newSub, tree);
+			}
+		} else {
+			var value = A2($elm$core$Elm$JsArray$unsafeGet, pos, tree);
+			if (!value.$) {
+				var subTree = value.a;
+				var newSub = $elm$core$Array$SubTree(
+					A4($elm$core$Array$insertTailInTree, shift - $elm$core$Array$shiftStep, index, tail, subTree));
+				return A3($elm$core$Elm$JsArray$unsafeSet, pos, newSub, tree);
+			} else {
+				var newSub = $elm$core$Array$SubTree(
+					A4(
+						$elm$core$Array$insertTailInTree,
+						shift - $elm$core$Array$shiftStep,
+						index,
+						tail,
+						$elm$core$Elm$JsArray$singleton(value)));
+				return A3($elm$core$Elm$JsArray$unsafeSet, pos, newSub, tree);
+			}
+		}
+	});
+var $elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
+var $elm$core$Array$unsafeReplaceTail = F2(
+	function (newTail, _v0) {
+		var len = _v0.a;
+		var startShift = _v0.b;
+		var tree = _v0.c;
+		var tail = _v0.d;
+		var originalTailLen = $elm$core$Elm$JsArray$length(tail);
+		var newTailLen = $elm$core$Elm$JsArray$length(newTail);
+		var newArrayLen = len + (newTailLen - originalTailLen);
+		if (_Utils_eq(newTailLen, $elm$core$Array$branchFactor)) {
+			var overflow = _Utils_cmp(newArrayLen >>> $elm$core$Array$shiftStep, 1 << startShift) > 0;
+			if (overflow) {
+				var newShift = startShift + $elm$core$Array$shiftStep;
+				var newTree = A4(
+					$elm$core$Array$insertTailInTree,
+					newShift,
+					len,
+					newTail,
+					$elm$core$Elm$JsArray$singleton(
+						$elm$core$Array$SubTree(tree)));
+				return A4($elm$core$Array$Array_elm_builtin, newArrayLen, newShift, newTree, $elm$core$Elm$JsArray$empty);
+			} else {
+				return A4(
+					$elm$core$Array$Array_elm_builtin,
+					newArrayLen,
+					startShift,
+					A4($elm$core$Array$insertTailInTree, startShift, len, newTail, tree),
+					$elm$core$Elm$JsArray$empty);
+			}
+		} else {
+			return A4($elm$core$Array$Array_elm_builtin, newArrayLen, startShift, tree, newTail);
+		}
+	});
+var $elm$core$Array$push = F2(
+	function (a, array) {
+		var tail = array.d;
+		return A2(
+			$elm$core$Array$unsafeReplaceTail,
+			A2($elm$core$Elm$JsArray$push, a, tail),
+			array);
+	});
+var $author$project$Grid$expand = F2(
+	function (a, grid) {
+		var size = $author$project$Grid$length(grid) + 1;
+		var line = A2($elm$core$Array$repeat, size, a);
+		var plain = A2($elm$core$Array$repeat, size, line);
+		return A2(
+			$elm$core$Array$push,
+			plain,
+			A2(
+				$elm$core$Array$map,
+				function (p) {
+					return A2($elm$core$Array$push, line, p);
+				},
+				A2(
+					$elm$core$Array$map,
+					function (p) {
+						return A2(
+							$elm$core$Array$map,
+							function (l) {
+								return A2($elm$core$Array$push, a, l);
+							},
+							p);
+					},
+					grid)));
+	});
 var $author$project$Main$Spawn = function (a) {
 	return {$: 7, a: a};
 };
@@ -11538,7 +11680,6 @@ var $elm$random$Random$Seed = F2(
 	function (a, b) {
 		return {$: 0, a: a, b: b};
 	});
-var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
 var $elm$random$Random$next = function (_v0) {
 	var state0 = _v0.a;
 	var incr = _v0.b;
@@ -11629,14 +11770,6 @@ var $elm$random$Random$generate = F2(
 		return $elm$random$Random$command(
 			A2($elm$random$Random$map, tagger, generator));
 	});
-var $elm$core$Array$length = function (_v0) {
-	var len = _v0.a;
-	return len;
-};
-var $author$project$Grid$length = function (grid) {
-	return $elm$core$Array$length(grid);
-};
-var $elm$core$Bitwise$and = _Bitwise_and;
 var $elm$core$Bitwise$xor = _Bitwise_xor;
 var $elm$random$Random$peel = function (_v0) {
 	var state = _v0.a;
@@ -11701,16 +11834,16 @@ var $author$project$Main$randomPointGenerator = function (gridSize) {
 			function (x, y, z) {
 				return _Utils_Tuple3(x, y, z);
 			}),
-		A2($elm$random$Random$int, 0, gridSize),
-		A2($elm$random$Random$int, 0, gridSize),
-		A2($elm$random$Random$int, 0, gridSize));
+		A2($elm$random$Random$int, 0, gridSize - 1),
+		A2($elm$random$Random$int, 0, gridSize - 1),
+		A2($elm$random$Random$int, 0, gridSize - 1));
 };
 var $author$project$Main$generateSpreadCmd = function (model) {
 	return A2(
 		$elm$random$Random$generate,
 		$author$project$Main$Spawn,
 		$author$project$Main$randomPointGenerator(
-			$author$project$Grid$length(model.r)));
+			$author$project$Grid$length(model.p)));
 };
 var $elm_explorations$linear_algebra$Math$Matrix4$mul = _MJS_m4x4mul;
 var $elm_explorations$linear_algebra$Math$Matrix4$makeRotate = _MJS_m4x4makeRotate;
@@ -12158,9 +12291,6 @@ var $author$project$Main$move = F2(
 					})
 			});
 	});
-var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
-var $elm$core$Basics$ge = _Utils_ge;
-var $elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
 var $elm$core$Array$getHelp = F3(
 	function (shift, index, tree) {
 		getHelp:
@@ -12182,7 +12312,6 @@ var $elm$core$Array$getHelp = F3(
 			}
 		}
 	});
-var $elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
 var $elm$core$Array$tailIndex = function (len) {
 	return (len >>> 5) << 5;
 };
@@ -12409,10 +12538,10 @@ var $author$project$Main$moveTargetBoxBlockList = F3(
 	});
 var $author$project$Main$getClickedMoveTo = F2(
 	function (model, pos) {
-		var origin = $author$project$Shader$orbitCamelaPosition(model.q);
+		var origin = $author$project$Shader$orbitCamelaPosition(model.r);
 		var destination = A3(
 			$author$project$Shader$getClickPosition,
-			model.q,
+			model.r,
 			$author$project$Main$getPerspective(model.Z),
 			pos);
 		var direction = A2($elm_explorations$linear_algebra$Math$Vector3$direction, destination, origin);
@@ -12445,7 +12574,7 @@ var $author$project$Main$getClickedMoveTo = F2(
 							$elm$core$List$concat($author$project$Asset$cube));
 						return _Utils_Tuple2(triangles, moveTo);
 					},
-					A3($author$project$Main$moveTargetBoxBlockList, model.E, model.r, model.c))));
+					A3($author$project$Main$moveTargetBoxBlockList, model.E, model.p, model.c))));
 	});
 var $elm$core$Basics$min = F2(
 	function (x, y) {
@@ -12678,9 +12807,9 @@ var $author$project$Motion$positionAnimation = F4(
 	});
 var $author$project$Main$moveModel = F2(
 	function (moveTo, model) {
-		var camera = model.q;
+		var camera = model.r;
 		var beforeBodyArray = $elm$core$Array$fromList(model.c.g);
-		var _v0 = A3($author$project$Main$moveAndEat, moveTo, model.r, model.c);
+		var _v0 = A3($author$project$Main$moveAndEat, moveTo, model.p, model.c);
 		var nextField = _v0.a;
 		var nextPlayer = _v0.b;
 		var animatedBody = A2(
@@ -12726,12 +12855,19 @@ var $author$project$Main$moveModel = F2(
 		return _Utils_update(
 			model,
 			{
-				q: nextCamera,
+				r: nextCamera,
 				N: 0,
-				r: nextField,
+				p: nextField,
 				c: {g: animatedBody, a: animatedHead}
 			});
 	});
+var $author$project$Main$nextExpand = function (model) {
+	var size = $author$project$Grid$length(model.p);
+	return size * (size - 1);
+};
+var $author$project$Main$score = function (model) {
+	return $elm$core$List$length(model.c.g) + 1;
+};
 var $author$project$Main$Food = function (a) {
 	return {$: 0, a: a};
 };
@@ -12867,7 +13003,7 @@ var $zaboco$elm_draggable$Draggable$update = F3(
 	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
-		var camera = model.q;
+		var camera = model.r;
 		var _v0 = model.Z;
 		var width = _v0.a;
 		var height = _v0.b;
@@ -12891,7 +13027,7 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{
-							q: animatedCamera,
+							r: animatedCamera,
 							c: {
 								g: A2(
 									$elm$core$List$map,
@@ -12929,7 +13065,7 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{
-							q: _Utils_update(
+							r: _Utils_update(
 								camera,
 								{
 									aK: camera.aK - (dx / 30),
@@ -12958,8 +13094,15 @@ var $author$project$Main$update = F2(
 							return model;
 						}
 					}();
-					var nextModel = _Utils_update(
+					var expandedModel = _Utils_eq(
+						$author$project$Main$score(movedModel),
+						$author$project$Main$nextExpand(movedModel)) ? _Utils_update(
 						movedModel,
+						{
+							p: A2($author$project$Grid$expand, $author$project$Main$Empty, movedModel.p)
+						}) : movedModel;
+					var nextModel = _Utils_update(
+						expandedModel,
 						{N: 0});
 					return _Utils_Tuple2(
 						nextModel,
@@ -12984,7 +13127,7 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{
-							q: _Utils_update(
+							r: _Utils_update(
 								camera,
 								{
 									aM: A2($elm$core$Basics$max, radius, 4)
@@ -12997,7 +13140,7 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{
-							r: A3($author$project$Main$spawn, point, model.c, model.r)
+							p: A3($author$project$Main$spawn, point, model.c, model.p)
 						}),
 					$elm$core$Platform$Cmd$none);
 		}
@@ -13040,7 +13183,7 @@ var $elm$core$Basics$composeR = F3(
 var $elm$core$Basics$round = _Basics_round;
 var $author$project$Main$currentLevel = function (model) {
 	return $elm$core$Basics$round(
-		($author$project$Grid$length(model.r) - 3) / 2);
+		($author$project$Grid$length(model.p) - 3) / 2);
 };
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $author$project$Main$cellToBlock = F2(
@@ -13160,7 +13303,7 @@ var $author$project$Main$toMesh = F2(
 var $author$project$Shader$uniforms = F4(
 	function (camera, perspective, position, rotation) {
 		return {
-			q: $author$project$Shader$cameraLootAk(camera),
+			r: $author$project$Shader$cameraLootAk(camera),
 			bg: perspective,
 			e: rotation,
 			bs: 0.8,
@@ -13170,7 +13313,7 @@ var $author$project$Shader$uniforms = F4(
 var $author$project$Shader$vertexShader = {
 	src: '\n\n        attribute vec3 position;\n        attribute vec3 color;\n        uniform mat4 perspective;\n        uniform mat4 camera;\n        uniform mat4 rotation;\n        uniform mat4 translation;\n        varying vec3 vcolor;\n        void main () {\n            gl_Position = perspective * camera * translation * rotation * vec4(position, 1.0);\n            vcolor = color;\n        }\n\n    ',
 	attributes: {color: 'bH', position: 'b'},
-	uniforms: {camera: 'q', perspective: 'bg', rotation: 'e', translation: 'bw'}
+	uniforms: {camera: 'r', perspective: 'bg', rotation: 'e', translation: 'bw'}
 };
 var $author$project$Main$frontEntity = F5(
 	function (camera, perspective, set, scale, block) {
@@ -13414,7 +13557,7 @@ var $elm$html$Html$Attributes$href = function (url) {
 };
 var $author$project$Main$isGameOver = function (model) {
 	return !$elm$core$List$length(
-		A3($author$project$Main$moveTargetBoxBlockList, model.E, model.r, model.c));
+		A3($author$project$Main$moveTargetBoxBlockList, model.E, model.p, model.c));
 };
 var $zaboco$elm_draggable$Draggable$alwaysPreventDefaultAndStopPropagation = function (msg) {
 	return {cc: msg, ct: true, cx: true};
@@ -13492,10 +13635,6 @@ var $author$project$Main$moveTargetBoxBlockEntities = F6(
 				},
 				A3($author$project$Main$moveTargetBoxBlockList, time, field, player)));
 	});
-var $author$project$Main$nextExpandAfter = function (model) {
-	var size = $author$project$Grid$length(model.r);
-	return size * (size - 1);
-};
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 0, a: a};
 };
@@ -13849,9 +13988,6 @@ var $author$project$Main$playerEntities = F5(
 		return cellEntities;
 	});
 var $elm$html$Html$Attributes$rel = _VirtualDom_attribute('rel');
-var $author$project$Main$score = function (model) {
-	return $elm$core$List$length(model.c.g) + 1;
-};
 var $elm$html$Html$span = _VirtualDom_node('span');
 var $elm$html$Html$Attributes$target = $elm$html$Html$Attributes$stringProperty('target');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
@@ -14055,7 +14191,7 @@ var $author$project$Main$view = function (model) {
 													[
 														$elm$html$Html$text(
 														$elm$core$String$fromInt(
-															$author$project$Main$nextExpandAfter(model)))
+															$author$project$Main$nextExpand(model)))
 													]))
 											]))
 									])),
@@ -14100,19 +14236,19 @@ var $author$project$Main$view = function (model) {
 												]),
 											A2($zaboco$elm_draggable$Draggable$touchTriggers, 'my-element', $author$project$Main$DragMsg)),
 										_Utils_ap(
-											A4($author$project$Main$fieldEntities, model.q, perspective, model.z.aW, model.r),
+											A4($author$project$Main$fieldEntities, model.r, perspective, model.z.aW, model.p),
 											_Utils_ap(
 												A5(
 													$author$project$Main$fieldLineEntities,
-													model.q,
+													model.r,
 													perspective,
 													_Utils_Tuple2(model.z.a4, model.z.a0),
 													model.c.a.h,
-													model.r),
+													model.p),
 												_Utils_ap(
 													A5(
 														$author$project$Main$playerEntities,
-														model.q,
+														model.r,
 														perspective,
 														_Utils_Tuple3(model.z.bj, model.z.bi, model.z.aT),
 														model.E,
@@ -14120,10 +14256,10 @@ var $author$project$Main$view = function (model) {
 													A6(
 														$author$project$Main$moveTargetBoxBlockEntities,
 														model.E,
-														model.q,
+														model.r,
 														perspective,
 														_Utils_Tuple2(model.z.a9, model.z.ba),
-														model.r,
+														model.p,
 														model.c))))),
 									gameOver ? _List_fromArray(
 										[$author$project$Main$viewGameOver]) : _List_Nil)),
