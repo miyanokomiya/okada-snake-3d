@@ -5,6 +5,7 @@ module Asset exposing
     , daSide
     , okaFace
     , okaSide
+    , unitCube
     , unitLine
     )
 
@@ -66,6 +67,52 @@ cube =
       , ( point.a2, point.b, point.a4 )
       , ( point.a4, point.b, point.a3 )
       , ( point.a3, point.b, point.a1 )
+      ]
+    ]
+
+
+unitCube : List (List Triangle)
+unitCube =
+    let
+        size =
+            0.5
+
+        a1 =
+            vec3 -size -size size
+
+        a2 =
+            vec3 size -size size
+
+        a3 =
+            vec3 -size size size
+
+        a4 =
+            vec3 size size size
+
+        b1 =
+            vec3 -size -size -size
+
+        b2 =
+            vec3 size -size -size
+
+        b3 =
+            vec3 -size size -size
+
+        b4 =
+            vec3 size size -size
+    in
+    [ [ ( a1, a2, a3 )
+      , ( a2, a4, a3 )
+      , ( b2, b1, b4 )
+      , ( b1, b3, b4 )
+      , ( b1, a1, b3 )
+      , ( a1, a3, b3 )
+      , ( a2, b2, a4 )
+      , ( b2, b4, a4 )
+      , ( b1, b2, a1 )
+      , ( b2, a2, a1 )
+      , ( a3, a4, b3 )
+      , ( a4, b4, b3 )
       ]
     ]
 

@@ -18,7 +18,6 @@ import Maybe.Extra
 import Motion
 import Pointer
 import Random
-import Random.List
 import Shader
 import WebGL exposing (Mesh)
 
@@ -28,9 +27,14 @@ type Okada
     | Da
 
 
+type MeshType
+    = Moka
+    | Mda
+    | Mobstacle
+
+
 type alias GeoBlock =
-    { id : String
-    , okada : Okada
+    { meshType : MeshType
     , geo : Shader.Geo
     , turning : Shader.Rotation
     }
@@ -38,6 +42,7 @@ type alias GeoBlock =
 
 type Cell
     = Food Okada
+    | Obstacle
     | Empty
 
 
@@ -88,6 +93,7 @@ type alias MeshSet =
 type alias Model =
     { time : Float
     , size : ( Int, Int )
+    , step : Int
     , field : Grid Cell
     , player : Player
     , camera : Shader.OrbitCamela
@@ -102,6 +108,7 @@ type alias Model =
         , moveTargetBox : Mesh Shader.Vertex
         , moveTargetBoxLine : Mesh Shader.Vertex
         , connectorLine : Mesh Shader.Vertex
+        , obstacleCube : Mesh Shader.Vertex
         }
     }
 
@@ -175,6 +182,7 @@ initModel level =
     in
     { time = 0
     , field = field
+    , step = 0
     , player = player
     , camera = setCameraToHead player { radius = cameraRadius level, radianY = pi * 1.4, radianZ = -pi / 8, position = vec3 0 0 0 }
     , size = ( 400, 600 )
@@ -189,6 +197,7 @@ initModel level =
         , moveTargetBox = Block.meshCube
         , moveTargetBoxLine = Block.meshCubeLine
         , connectorLine = Block.meshUnitLine (vec3 200 150 25)
+        , obstacleCube = Block.meshUnitCube (vec3 200 200 200)
         }
     }
 
@@ -298,15 +307,26 @@ update msg model =
                         else
                             movedModel
 
+                    moved =
+                        model.player /= expandedModel.player
+
                     nextModel =
-                        { expandedModel | downTime = 0 }
+                        { expandedModel
+                            | downTime = 0
+                            , step =
+                                if moved then
+                                    expandedModel.step + 1
+
+                                else
+                                    expandedModel.step
+                        }
                 in
                 ( nextModel
-                , if model.player == nextModel.player then
-                    Cmd.none
+                , if moved then
+                    generateSpreadCmd nextModel
 
                   else
-                    generateSpreadCmd nextModel
+                    Cmd.none
                 )
 
             else
@@ -314,15 +334,28 @@ update msg model =
 
         Move moveTo ->
             let
-                nextModel =
+                movedModel =
                     moveModel moveTo model
+
+                moved =
+                    model.player /= movedModel.player
+
+                nextModel =
+                    { movedModel
+                        | step =
+                            if moved then
+                                movedModel.step + 1
+
+                            else
+                                movedModel.step
+                    }
             in
             ( nextModel
-            , if model.player == nextModel.player then
-                Cmd.none
+            , if moved then
+                generateSpreadCmd nextModel
 
               else
-                generateSpreadCmd nextModel
+                Cmd.none
             )
 
         Zoom event ->
@@ -335,7 +368,7 @@ update msg model =
             )
 
         Spawn point ->
-            ( { model | field = spawn point model.player model.field }, Cmd.none )
+            ( { model | field = spawn model.step point model.player model.field }, Cmd.none )
 
 
 generateSpreadCmd : Model -> Cmd Msg
@@ -388,13 +421,21 @@ emptyPoints player field =
         |> List.map (\( p, _ ) -> p)
 
 
-spawn : Grid.Point -> Player -> Grid Cell -> Grid Cell
-spawn point player field =
+spawn : Int -> Grid.Point -> Player -> Grid Cell -> Grid Cell
+spawn step point player field =
     let
-        okada =
-            tailNotOkada player
+        cellType =
+            case modBy 3 step of
+                2 ->
+                    Food Oka
+
+                1 ->
+                    Food Da
+
+                _ ->
+                    Obstacle
     in
-    Grid.set point (Food okada) field
+    Grid.set point cellType field
 
 
 movingTime : Float
@@ -713,7 +754,7 @@ view model =
                         (fieldEntities
                             model.camera
                             perspective
-                            model.meshMap.default
+                            ( model.meshMap.default, model.meshMap.obstacleCube )
                             model.field
                             ++ fieldLineEntities
                                 model.camera
@@ -878,9 +919,6 @@ pointToPosition ( x, y, z ) =
 cellToBlock : Grid.Point -> Cell -> Maybe GeoBlock
 cellToBlock point cell =
     let
-        ( x, y, z ) =
-            point
-
         position =
             pointToPosition point
 
@@ -890,14 +928,29 @@ cellToBlock point cell =
     case cell of
         Food okada ->
             Just
-                { id = String.fromInt x ++ "," ++ String.fromInt y ++ "," ++ String.fromInt z
-                , okada = okada
+                { meshType = okadaToMeshType okada
+                , geo = { position = position, rotation = staticRotation }
+                , turning = staticRotation
+                }
+
+        Obstacle ->
+            Just
+                { meshType = Mobstacle
                 , geo = { position = position, rotation = staticRotation }
                 , turning = staticRotation
                 }
 
         _ ->
             Nothing
+
+
+okadaToMeshType : Okada -> MeshType
+okadaToMeshType okada =
+    if okada == Oka then
+        Moka
+
+    else
+        Mda
 
 
 fieldLineEntities : Shader.OrbitCamela -> Mat4 -> ( Mesh Shader.Vertex, Mesh Shader.Vertex ) -> Grid.Point -> Grid Cell -> List WebGL.Entity
@@ -992,8 +1045,8 @@ fieldLineEntities camera perspective ( mesh, hilightMesh ) ( hx, hy, hz ) grid =
     [ xlines, ylines, zlines ] |> List.concat
 
 
-fieldEntities : Shader.OrbitCamela -> Mat4 -> MeshSet -> Grid Cell -> List WebGL.Entity
-fieldEntities camera perspective set grid =
+fieldEntities : Shader.OrbitCamela -> Mat4 -> ( MeshSet, Mesh Shader.Vertex ) -> Grid Cell -> List WebGL.Entity
+fieldEntities camera perspective ( okadaMeshSet, obsMesh ) grid =
     Grid.toList grid
         |> List.map
             (\( point, cell ) ->
@@ -1002,24 +1055,25 @@ fieldEntities camera perspective set grid =
         |> Maybe.Extra.values
         |> List.map
             (\block ->
-                frontEntity camera perspective set 0.5 block
+                case block.meshType of
+                    Moka ->
+                        frontEntity camera perspective okadaMeshSet.oka 0.5 block.geo.position
+
+                    Mda ->
+                        frontEntity camera perspective okadaMeshSet.da 0.5 block.geo.position
+
+                    Mobstacle ->
+                        normalEntity camera perspective obsMesh cellSize block.geo
             )
 
 
 playerCellToBlock : Mat4 -> Okada -> PlayerCell -> GeoBlock
 playerCellToBlock translation okada pcell =
     let
-        point =
-            pcell.point
-
-        ( x, y, z ) =
-            point
-
         position =
-            pointToPosition point
+            pointToPosition pcell.point
     in
-    { id = String.fromInt x ++ "," ++ String.fromInt y ++ "," ++ String.fromInt z
-    , okada = okada
+    { meshType = okadaToMeshType okada
     , geo =
         { position = Mat4.transform translation position
         , rotation = pcell.rotation
@@ -1122,12 +1176,29 @@ entity camera perspective set scale block =
         (Shader.uniforms camera perspective p transfrom)
 
 
-frontEntity : Shader.OrbitCamela -> Mat4 -> MeshSet -> Float -> GeoBlock -> WebGL.Entity
-frontEntity camera perspective set scale block =
+normalEntity : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex -> Float -> Shader.Geo -> WebGL.Entity
+normalEntity camera perspective mesh scale geo =
     let
         p =
-            block.geo.position
+            geo.position
 
+        r =
+            geo.rotation
+
+        transfrom =
+            Mat4.makeScale3 scale scale scale
+                |> Mat4.mul (Shader.rotationToMat r)
+    in
+    WebGL.entity
+        Shader.vertexShader
+        Shader.fragmentShader
+        mesh
+        (Shader.uniforms camera perspective p transfrom)
+
+
+frontEntity : Shader.OrbitCamela -> Mat4 -> Mesh Shader.Vertex -> Float -> Vec3 -> WebGL.Entity
+frontEntity camera perspective mesh scale p =
+    let
         transfrom =
             Mat4.makeScale3 scale scale scale
                 |> Mat4.mul (Shader.orbitCamelaRotation camera)
@@ -1136,7 +1207,7 @@ frontEntity camera perspective set scale block =
     WebGL.entity
         Shader.vertexShader
         Shader.fragmentShader
-        (toMesh set block)
+        mesh
         (Shader.uniforms camera perspective p transfrom)
 
 
@@ -1166,11 +1237,15 @@ lineEntity camera perspective mesh size geo =
 
 toMesh : MeshSet -> GeoBlock -> Mesh Shader.Vertex
 toMesh set block =
-    if block.okada == Oka then
-        set.oka
+    case block.meshType of
+        Moka ->
+            set.oka
 
-    else
-        set.da
+        Mda ->
+            set.da
+
+        _ ->
+            set.oka
 
 
 getPerspective : ( Int, Int ) -> Mat4
@@ -1213,7 +1288,7 @@ nextExpand model =
 
 currentLevel : Model -> Int
 currentLevel model =
-    round (toFloat (Grid.length model.field - 3) / 2)
+    round (toFloat (Grid.length model.field - 3) / 2) + 1
 
 
 viewGameOver : Html Msg

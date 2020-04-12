@@ -5,6 +5,7 @@ module Block exposing
     , meshCubeLine
     , meshDa
     , meshOka
+    , meshUnitCube
     , meshUnitLine
     )
 
@@ -39,6 +40,15 @@ mesh list =
         |> List.map (\( tri, color ) -> face color tri)
         |> List.concat
         |> WebGL.triangles
+
+
+meshUnitCube : Vec3 -> Mesh Shader.Vertex
+meshUnitCube color =
+    (Asset.unitCube
+        |> List.concat
+        |> List.map (\tri -> ( tri, color ))
+    )
+        |> mesh
 
 
 meshUnitLine : Vec3 -> Mesh Shader.Vertex
