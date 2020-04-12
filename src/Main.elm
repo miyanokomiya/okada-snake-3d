@@ -18,6 +18,7 @@ import Maybe.Extra
 import Motion
 import Pointer
 import Random
+import Random.List
 import Shader
 import WebGL exposing (Mesh)
 
@@ -339,42 +340,61 @@ update msg model =
 
 generateSpreadCmd : Model -> Cmd Msg
 generateSpreadCmd model =
-    Random.generate Spawn (randomPointGenerator (Grid.length model.field))
+    case randomPointGenerator model.player model.field of
+        Just gen ->
+            Random.generate Spawn gen
+
+        Nothing ->
+            Cmd.none
 
 
-randomPointGenerator : Int -> Random.Generator Grid.Point
-randomPointGenerator gridSize =
-    Random.map3
-        (\x y z -> ( x, y, z ))
-        (Random.int 0 (gridSize - 1))
-        (Random.int 0 (gridSize - 1))
-        (Random.int 0 (gridSize - 1))
+randomPointGenerator : Player -> Grid Cell -> Maybe (Random.Generator Grid.Point)
+randomPointGenerator player field =
+    let
+        empties =
+            emptyPoints player field
+
+        maybeHead =
+            List.head empties
+
+        maybeTail =
+            List.tail empties
+    in
+    maybeHead
+        |> Maybe.andThen
+            (\head ->
+                case maybeTail of
+                    Nothing ->
+                        Just (Random.constant head)
+
+                    Just tail ->
+                        Just (Random.uniform head tail)
+            )
+
+
+playerPoints : Player -> List Grid.Point
+playerPoints player =
+    player.head :: player.body |> List.map (\c -> c.point)
+
+
+emptyPoints : Player -> Grid Cell -> List Grid.Point
+emptyPoints player field =
+    let
+        players =
+            playerPoints player
+    in
+    field
+        |> Grid.filter (\( p, cell ) -> cell == Empty && List.member p players == False)
+        |> List.map (\( p, _ ) -> p)
 
 
 spawn : Grid.Point -> Player -> Grid Cell -> Grid Cell
 spawn point player field =
     let
-        maybeCurrentCell =
-            Grid.get point field
+        okada =
+            tailNotOkada player
     in
-    case maybeCurrentCell of
-        Nothing ->
-            field
-
-        Just currentCell ->
-            let
-                playerPoints =
-                    player.head :: player.body |> List.map (\c -> c.point)
-            in
-            if List.member point playerPoints || currentCell /= Empty then
-                field
-
-            else
-                let
-                    okada =
-                        tailNotOkada player
-                in
-                Grid.set point (Food okada) field
+    Grid.set point (Food okada) field
 
 
 movingTime : Float

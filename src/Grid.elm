@@ -4,6 +4,7 @@ module Grid exposing
     , Plane
     , Point
     , expand
+    , filter
     , get
     , initialize
     , length
@@ -41,7 +42,7 @@ set : Point -> a -> Grid a -> Grid a
 set ( x, y, z ) item grid =
     grid
         |> map
-            (\( old, ( xx, yy, zz ) ) ->
+            (\( ( xx, yy, zz ), old ) ->
                 if xx == x && yy == y && zz == z then
                     item
 
@@ -52,17 +53,12 @@ set ( x, y, z ) item grid =
 
 get : Point -> Grid a -> Maybe a
 get ( x, y, z ) grid =
-    case Array.get z grid of
-        Nothing ->
-            Nothing
-
-        Just plane ->
-            case Array.get y plane of
-                Nothing ->
-                    Nothing
-
-                Just line ->
-                    Array.get x line
+    Array.get z grid
+        |> Maybe.andThen
+            (\plane ->
+                Array.get y plane
+                    |> Maybe.andThen (\line -> Array.get x line)
+            )
 
 
 toList : Grid a -> List ( Point, a )
@@ -113,7 +109,7 @@ initialize size gen =
         )
 
 
-map : (( a, ( Int, Int, Int ) ) -> a) -> Grid a -> Grid a
+map : (( Point, a ) -> a) -> Grid a -> Grid a
 map exec grid =
     grid
         |> Array.indexedMap
@@ -124,10 +120,15 @@ map exec grid =
                             line
                                 |> Array.indexedMap
                                     (\x cell ->
-                                        exec ( cell, ( x, y, z ) )
+                                        exec ( ( x, y, z ), cell )
                                     )
                         )
             )
+
+
+filter : (( Point, a ) -> Bool) -> Grid a -> List ( Point, a )
+filter exec grid =
+    grid |> toList |> List.filter exec
 
 
 expand : a -> Grid a -> Grid a
