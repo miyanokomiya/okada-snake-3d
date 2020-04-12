@@ -290,8 +290,15 @@ update msg model =
                             Nothing ->
                                 model
 
+                    expandedModel =
+                        if score movedModel == nextExpand movedModel then
+                            { movedModel | field = Grid.expand Empty movedModel.field }
+
+                        else
+                            movedModel
+
                     nextModel =
-                        { movedModel | downTime = 0 }
+                        { expandedModel | downTime = 0 }
                 in
                 ( nextModel
                 , if model.player == nextModel.player then
@@ -339,9 +346,9 @@ randomPointGenerator : Int -> Random.Generator Grid.Point
 randomPointGenerator gridSize =
     Random.map3
         (\x y z -> ( x, y, z ))
-        (Random.int 0 gridSize)
-        (Random.int 0 gridSize)
-        (Random.int 0 gridSize)
+        (Random.int 0 (gridSize - 1))
+        (Random.int 0 (gridSize - 1))
+        (Random.int 0 (gridSize - 1))
 
 
 spawn : Grid.Point -> Player -> Grid Cell -> Grid Cell
@@ -660,7 +667,7 @@ view model =
                             [ Html.Attributes.style "margin" "0 0.4rem"
                             ]
                             [ Html.text "/" ]
-                        , Html.span [] [ Html.text (String.fromInt (nextExpandAfter model)) ]
+                        , Html.span [] [ Html.text (String.fromInt (nextExpand model)) ]
                         ]
                     ]
                 , Html.div
@@ -1175,8 +1182,8 @@ score model =
     List.length model.player.body + 1
 
 
-nextExpandAfter : Model -> Int
-nextExpandAfter model =
+nextExpand : Model -> Int
+nextExpand model =
     let
         size =
             Grid.length model.field

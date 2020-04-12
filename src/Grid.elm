@@ -3,6 +3,7 @@ module Grid exposing
     , Line
     , Plane
     , Point
+    , expand
     , get
     , initialize
     , length
@@ -127,3 +128,22 @@ map exec grid =
                                     )
                         )
             )
+
+
+expand : a -> Grid a -> Grid a
+expand a grid =
+    let
+        size =
+            length grid + 1
+
+        line =
+            Array.repeat size a
+
+        plain =
+            Array.repeat size line
+    in
+    grid
+        |> Array.map
+            (\p -> p |> Array.map (\l -> l |> Array.push a))
+        |> Array.map (\p -> Array.push line p)
+        |> Array.push plain
